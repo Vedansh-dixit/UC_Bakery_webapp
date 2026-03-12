@@ -1,0 +1,32 @@
+# ─── Credentials / Secrets ──────────────────────────────────────
+# Never commit real keys. The CFG block in index.html
+# uses placeholder values — fill them in locally or via Vercel env vars.
+.env
+.env.local
+.env.production
+*.secret
+secrets.json
+
+# ─── OS & Editor ────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# ─── Node (if you add build tools later) ────────────────────────
+node_modules/
+npm-debug.log*
+yarn-error.log
+.yarn/
+
+# ─── Build artefacts ────────────────────────────────────────────
+dist/
+build/
+.vercel/
+
+# ─── Logs ───────────────────────────────────────────────────────
+*.log
+logs/
