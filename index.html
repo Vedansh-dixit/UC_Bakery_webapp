@@ -1103,7 +1103,7 @@ footer ul li a:hover { color: var(--amber); }
       <p>Only the finest flour, butter &amp; seasonal produce</p>
     </div>
     <div class="usp-item reveal" style="transition-delay:100ms">
-      <span class="usp-icon" style="font-size:0"><img src="https://images.unsplash.com/photo-1483695028939-5bb13f8648b0?w=80&h=80&fit=crop" alt="Fresh pastries" style="width:64px;height:64px;border-radius:50%;object-fit:cover;box-shadow:0 4px 12px rgba(194,24,91,.15);border:3px solid var(--dusty-rose)"/></span>
+      <span class="usp-icon" style="font-size:0"><img src="https://images.unsplash.com/photo-1586444248879-bc604bc77f90?w=80&h=80&fit=crop" alt="Fresh pastries" style="width:64px;height:64px;border-radius:50%;object-fit:cover;box-shadow:0 4px 12px rgba(194,24,91,.15);border:3px solid var(--dusty-rose)"/></span>
       <h3>Baked Fresh Daily</h3>
       <p>Out of the oven every morning before 7 AM</p>
     </div>
@@ -1700,7 +1700,10 @@ var Auth = {
 
 // ─── MODAL SYSTEM ────────────────────────────────────────────────────────────
 var _mpending=null;
+var _authMode='login';
 function openModal(name,data){
+  // FIX: 'login' and 'signup' share the single 'm-auth' shell
+  if(name==='login'||name==='signup'){ _authMode=name; name='auth'; }
   _mpending=data||null;
   document.querySelectorAll('.uc-modal').forEach(function(m){m.classList.remove('show');});
   document.getElementById('modal-overlay').classList.remove('show');
@@ -1713,6 +1716,7 @@ function openModal(name,data){
   document.getElementById('modal-overlay').classList.add('show');
   document.body.style.overflow='hidden';
   var renders={
+    auth:     function(){uiAuth(_authMode);},
     login:    function(){uiAuth('login');},
     signup:   function(){uiAuth('signup');},
     checkout: uiCheckout,
