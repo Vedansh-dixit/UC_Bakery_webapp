@@ -1,0 +1,2789 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Upper Crust – Baked with Love</title>
+<meta name="description" content="Upper Crust – artisan breads, cakes, and pastries baked daily. Order online for same-day delivery."/>
+<meta property="og:title" content="Upper Crust"/>
+<meta property="og:description" content="Artisan baked goods made fresh every morning. Order online."/>
+<meta property="og:type" content="website"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Audiowide&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Dancing+Script:wght@600;700&family=Lato:wght@300;400;600;700&display=swap" rel="stylesheet"/>
+
+<style>
+/* ── DESIGN TOKENS ─────────────────────────────────────── */
+:root {
+  --espresso:   #C2185B;
+  --espresso-d: #880e4f;
+  --cream:      #fce4ec;
+  --amber:      #e91e8c;
+  --amber-l:    #f06292;
+  --beige:      #fdf0f5;
+  --charcoal:   #2C2C2C;
+  --warm-white: #fff5f8;
+  --dusty-rose: #f48fb1;
+  --sage:       #ba68c8;
+  --muted:      #ad5e7a;
+  --border:     #f8bbd0;
+  --shadow:     rgba(194,24,91,.10);
+  --r-card:     12px;
+  --r-btn:      8px;
+  --r-input:    4px;
+  --transition: 200ms ease;
+}
+
+/* ── RESET & BASE ───────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; font-size: 16px; }
+body {
+  font-family: 'Lato', sans-serif;
+  background: var(--warm-white);
+  color: var(--charcoal);
+  overflow-x: hidden;
+}
+img { display: block; max-width: 100%; }
+a { text-decoration: none; color: inherit; }
+button { cursor: pointer; font-family: inherit; border: none; background: none; }
+ul { list-style: none; }
+
+/* ── SKIP NAV ───────────────────────────────────────────── */
+.skip-nav {
+  position: absolute; top: -999px; left: 0;
+  background: var(--espresso); color: #fff;
+  padding: 8px 16px; z-index: 9999; border-radius: 0 0 8px 0;
+  font-size: 14px;
+}
+.skip-nav:focus { top: 0; }
+
+/* ── TOAST ──────────────────────────────────────────────── */
+#toast {
+  position: fixed; top: 24px; right: 24px; z-index: 9000;
+  background: var(--espresso); color: #fff;
+  padding: 14px 22px; border-radius: 10px;
+  font-size: 14px; font-weight: 600; letter-spacing: .3px;
+  box-shadow: 0 8px 30px var(--shadow);
+  transform: translateX(120%);
+  transition: transform 400ms cubic-bezier(.34,1.56,.64,1);
+  display: flex; align-items: center; gap: 10px;
+}
+#toast.show { transform: translateX(0); }
+#toast span.icon { font-size: 18px; }
+
+/* ── NAV ────────────────────────────────────────────────── */
+#nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 800;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 40px; height: 72px;
+  background: transparent;
+  transition: background 300ms ease, box-shadow 300ms ease;
+}
+#nav.scrolled {
+  background: var(--cream);
+  box-shadow: 0 2px 20px var(--shadow);
+}
+.nav-logo {
+  display: flex; align-items: center; gap: 10px;
+  font-family: 'Audiowide', sans-serif;
+  font-size: 20px; font-weight: 400;
+  color: var(--espresso);
+}
+.nav-logo .bread-icon { font-size: 28px; }
+.nav-links {
+  display: flex; align-items: center; gap: 32px;
+}
+.nav-links a {
+  font-size: 14px; font-weight: 600; letter-spacing: .5px;
+  color: var(--espresso); position: relative; padding-bottom: 4px;
+}
+.nav-links a::after {
+  content: ''; position: absolute; bottom: 0; left: 0;
+  width: 0; height: 3px;
+  background: var(--espresso); border-radius: 2px;
+  transition: width 200ms ease;
+}
+.nav-links a:hover::after, .nav-links a.active::after { width: 100%; }
+.nav-actions {
+  display: flex; align-items: center; gap: 12px;
+}
+.icon-btn {
+  width: 40px; height: 40px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px; color: var(--espresso);
+  transition: background var(--transition), transform var(--transition);
+}
+.icon-btn:hover { background: rgba(194,24,91,.1); transform: scale(1.05); }
+.icon-btn:active { transform: scale(.97); }
+.cart-btn { position: relative; }
+.cart-badge {
+  position: absolute; top: -4px; right: -4px;
+  background: var(--dusty-rose); color: #fff;
+  font-size: 10px; font-weight: 700;
+  width: 18px; height: 18px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; transition: opacity 200ms;
+}
+.cart-badge.visible { opacity: 1; }
+.nav-cta {
+  background: var(--espresso); color: #fff;
+  padding: 10px 22px; border-radius: var(--r-btn);
+  font-size: 13px; font-weight: 700; letter-spacing: 1px;
+  text-transform: uppercase;
+  transition: background var(--transition), transform var(--transition);
+}
+.nav-cta:hover { background: var(--amber); transform: scale(1.02); }
+.nav-cta:active { transform: scale(.97); }
+.hamburger {
+  display: none; flex-direction: column; gap: 5px;
+  padding: 6px; cursor: pointer;
+}
+.hamburger span {
+  display: block; width: 24px; height: 2px;
+  background: var(--espresso); border-radius: 2px;
+  transition: transform 300ms, opacity 200ms;
+}
+
+/* ── MOBILE NAV OVERLAY ────────────────────────────────── */
+#mobile-nav {
+  position: fixed; inset: 0; z-index: 700;
+  background: var(--beige);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 32px;
+  transform: translateX(100%);
+  transition: transform 400ms cubic-bezier(.4,0,.2,1);
+}
+#mobile-nav.open { transform: translateX(0); }
+#mobile-nav a {
+  font-family: 'Audiowide', sans-serif;
+  font-size: 28px; font-weight: 400; color: var(--espresso);
+  opacity: 0; transform: translateX(30px);
+  transition: opacity 300ms, transform 300ms;
+}
+#mobile-nav.open a { opacity: 1; transform: translateX(0); }
+#mobile-nav.open a:nth-child(1) { transition-delay: 100ms; }
+#mobile-nav.open a:nth-child(2) { transition-delay: 150ms; }
+#mobile-nav.open a:nth-child(3) { transition-delay: 200ms; }
+#mobile-nav.open a:nth-child(4) { transition-delay: 250ms; }
+#mobile-nav.open a:nth-child(5) { transition-delay: 300ms; }
+#mobile-nav.open a:nth-child(6) { transition-delay: 350ms; }
+.close-mobile {
+  position: absolute; top: 20px; right: 24px;
+  font-size: 32px; color: var(--espresso); cursor: pointer;
+}
+
+/* ── HERO ───────────────────────────────────────────────── */
+#hero {
+  min-height: 100vh;
+  background: var(--beige);
+  position: relative; overflow: hidden;
+  display: flex; align-items: center;
+  padding: 80px 40px 40px;
+}
+/* Subtle grain texture */
+#hero::before {
+  content: '';
+  position: absolute; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.03'/%3E%3C/svg%3E");
+  pointer-events: none; opacity: .5;
+}
+.hero-inner {
+  max-width: 1280px; margin: 0 auto; width: 100%;
+  display: grid; grid-template-columns: 1fr 1fr;
+  align-items: center; gap: 60px;
+  position: relative; z-index: 1;
+}
+.hero-text { display: flex; flex-direction: column; gap: 20px; }
+.hero-tagline {
+  font-family: 'Dancing Script', cursive;
+  font-size: 30px; color: var(--amber);
+  opacity: 0; transform: translateY(20px);
+  animation: fadeUp 600ms ease 200ms forwards;
+}
+.hero-title {
+  font-family: 'Audiowide', sans-serif;
+  font-size: clamp(30px, 4.5vw, 58px);
+  font-weight: 400; color: var(--espresso);
+  line-height: 1.15; letter-spacing: -0.5px;
+  opacity: 0; transform: translateY(20px);
+  animation: fadeUp 600ms ease 400ms forwards;
+}
+.hero-title em { font-style: italic; color: var(--amber); }
+.hero-sub {
+  font-size: 18px; color: var(--muted); line-height: 1.6;
+  max-width: 440px;
+  opacity: 0; transform: translateY(20px);
+  animation: fadeUp 600ms ease 600ms forwards;
+}
+.hero-btns {
+  display: flex; gap: 14px; flex-wrap: wrap;
+  opacity: 0; transform: translateY(20px);
+  animation: fadeUp 600ms ease 800ms forwards;
+}
+.btn-primary {
+  background: var(--espresso); color: #fff;
+  padding: 14px 32px; border-radius: var(--r-btn);
+  font-size: 14px; font-weight: 700; letter-spacing: 1.2px;
+  text-transform: uppercase;
+  transition: background var(--transition), transform var(--transition), box-shadow var(--transition);
+  box-shadow: 0 4px 16px var(--shadow);
+}
+.btn-primary:hover { background: var(--amber); transform: scale(1.02); box-shadow: 0 6px 24px var(--shadow); }
+.btn-primary:active { transform: scale(.97); }
+.btn-outline {
+  border: 2px solid var(--espresso); color: var(--espresso);
+  padding: 13px 30px; border-radius: var(--r-btn);
+  font-size: 14px; font-weight: 700; letter-spacing: 1.2px;
+  text-transform: uppercase;
+  transition: all var(--transition);
+}
+.btn-outline:hover { background: var(--espresso); color: #fff; transform: scale(1.02); }
+.btn-outline:active { transform: scale(.97); }
+.hero-badges {
+  display: flex; gap: 12px; flex-wrap: wrap;
+  opacity: 0; transform: translateY(20px);
+  animation: fadeUp 600ms ease 1000ms forwards;
+}
+.badge {
+  background: #fff; border: 1px solid var(--border);
+  padding: 8px 16px; border-radius: 50px;
+  font-size: 12px; font-weight: 700;
+  color: var(--espresso); letter-spacing: .4px;
+  box-shadow: 0 2px 8px var(--shadow);
+  display: flex; align-items: center; gap: 6px;
+}
+.hero-visual {
+  position: relative; display: flex; align-items: center; justify-content: center;
+  opacity: 0; transform: scale(.9);
+  animation: scaleIn 800ms ease 400ms forwards;
+}
+.hero-circle {
+  width: clamp(300px, 40vw, 520px);
+  height: clamp(300px, 40vw, 520px);
+  border-radius: 50%;
+  background: radial-gradient(circle at 40% 40%, #fce4ec, #f48fb1);
+  display: flex; align-items: center; justify-content: center;
+  font-size: clamp(120px, 18vw, 220px);
+  box-shadow: 0 20px 60px rgba(194,24,91,.18);
+  position: relative;
+  overflow: hidden;
+  border: 6px solid var(--dusty-rose);
+}
+.hero-circle::after {
+  content: '';
+  position: absolute; inset: 0; border-radius: 50%;
+  background: radial-gradient(circle at 70% 30%, rgba(255,255,255,.3), transparent 60%);
+}
+/* Floating crumbs */
+.crumb {
+  position: absolute; border-radius: 50%;
+  background: var(--dusty-rose); opacity: .7;
+  animation: float 3s ease-in-out infinite;
+}
+.crumb:nth-child(1) { width:12px; height:12px; top: 10%; left: 5%; animation-delay: 0s; }
+.crumb:nth-child(2) { width:8px; height:8px; top: 20%; right: 8%; animation-delay: .5s; }
+.crumb:nth-child(3) { width:16px; height:16px; bottom: 15%; left: 8%; animation-delay: 1s; }
+.crumb:nth-child(4) { width:6px; height:6px; bottom: 25%; right: 5%; animation-delay: 1.5s; }
+.crumb:nth-child(5) { width:10px; height:10px; top: 50%; left: 2%; animation-delay: 2s; }
+/* Floating label */
+.hero-float-label {
+  position: absolute;
+  background: #fff; border-radius: 12px;
+  padding: 12px 18px; box-shadow: 0 8px 24px var(--shadow);
+  display: flex; align-items: center; gap: 10px;
+  animation: float 3.5s ease-in-out infinite;
+}
+.hero-float-label.fl-1 { top: 10%; left: -20px; animation-delay: 0s; }
+.hero-float-label.fl-2 { bottom: 10%; right: -20px; animation-delay: 1.2s; }
+.hero-float-label .fl-icon { font-size: 24px; }
+.hero-float-label .fl-text strong { display: block; font-size: 13px; font-weight: 700; color: var(--espresso); }
+.hero-float-label .fl-text span { font-size: 11px; color: var(--muted); }
+.stars { color: var(--amber); font-size: 12px; letter-spacing: 1px; }
+
+/* Scroll indicator */
+.scroll-indicator {
+  position: absolute; bottom: 32px; left: 50%; transform: translateX(-50%);
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  font-size: 11px; letter-spacing: 2px; text-transform: uppercase;
+  color: var(--muted);
+  animation: fadeUp 600ms ease 1400ms both;
+}
+.scroll-arrow {
+  width: 28px; height: 28px; border-right: 2px solid var(--muted);
+  border-bottom: 2px solid var(--muted);
+  transform: rotate(45deg);
+  animation: bounce 1.5s ease infinite;
+}
+
+/* ── USP STRIP ──────────────────────────────────────────── */
+#usp {
+  background: var(--cream);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  padding: 48px 40px;
+}
+.usp-grid {
+  max-width: 1280px; margin: 0 auto;
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+}
+.usp-item {
+  display: flex; flex-direction: column; align-items: center;
+  text-align: center; gap: 12px; padding: 24px 16px;
+  border-radius: var(--r-card);
+  transition: background var(--transition), transform var(--transition);
+}
+.usp-item:hover { background: rgba(255,255,255,.7); transform: translateY(-4px); }
+.usp-icon { font-size: 40px; }
+.usp-item h3 { font-size: 15px; font-weight: 700; color: var(--espresso); }
+.usp-item p { font-size: 13px; color: var(--muted); line-height: 1.5; }
+
+/* ── SECTION COMMON ─────────────────────────────────────── */
+.section { padding: 80px 40px; }
+.section-header {
+  text-align: center; margin-bottom: 56px;
+}
+.section-eyebrow {
+  font-family: 'Dancing Script', cursive;
+  font-size: 22px; color: var(--amber); display: block; margin-bottom: 8px;
+}
+.section-title {
+  font-family: 'Audiowide', sans-serif;
+  font-size: clamp(22px, 3.2vw, 38px); font-weight: 400;
+  color: var(--espresso); line-height: 1.2;
+}
+.section-title .underline-deco {
+  display: inline-block; position: relative;
+}
+.section-title .underline-deco::after {
+  content: '';
+  position: absolute; bottom: -6px; left: 0; right: 0;
+  height: 4px; border-radius: 2px;
+  background: linear-gradient(90deg, var(--amber), var(--dusty-rose));
+}
+.container { max-width: 1280px; margin: 0 auto; }
+
+/* ── CATEGORY NAV ───────────────────────────────────────── */
+#categories { background: var(--warm-white); padding: 64px 40px; }
+.cat-track {
+  display: flex; gap: 24px; justify-content: center; flex-wrap: wrap;
+}
+.cat-tile {
+  display: flex; flex-direction: column; align-items: center; gap: 12px;
+  cursor: pointer; padding: 8px;
+  transition: transform var(--transition);
+}
+.cat-tile:hover { transform: translateY(-4px); }
+.cat-circle {
+  width: 90px; height: 90px; border-radius: 50%;
+  background: var(--cream);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 38px;
+  box-shadow: 0 4px 16px var(--shadow);
+  border: 3px solid transparent;
+  transition: border-color var(--transition), transform var(--transition);
+}
+.cat-tile:hover .cat-circle,
+.cat-tile.active .cat-circle { border-color: var(--amber); transform: scale(1.05); }
+.cat-label { font-size: 13px; font-weight: 700; color: var(--espresso); letter-spacing: .3px; }
+
+/* ── PRODUCTS ───────────────────────────────────────────── */
+#products { background: var(--beige); }
+.product-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+}
+.product-card {
+  background: var(--warm-white);
+  border-radius: var(--r-card);
+  border: 1px solid var(--border);
+  overflow: hidden;
+  transition: transform var(--transition), box-shadow var(--transition);
+  position: relative;
+  display: flex; flex-direction: column;
+}
+.product-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 40px var(--shadow);
+}
+.card-img {
+  aspect-ratio: 4/3;
+  background: var(--cream);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 72px; overflow: hidden; position: relative;
+  transition: transform 400ms ease;
+}
+.product-card:hover .card-img { transform: scale(1.05); }
+.wish-btn {
+  position: absolute; top: 12px; right: 12px;
+  width: 34px; height: 34px; border-radius: 50%;
+  background: rgba(255,255,255,.9);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; cursor: pointer; z-index: 2;
+  transition: transform var(--transition), background var(--transition);
+  border: none;
+}
+.wish-btn:hover { background: #fff; transform: scale(1.1); }
+.wish-btn.active { color: var(--dusty-rose); }
+.card-body { padding: 18px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
+.card-tag {
+  display: inline-block;
+  background: var(--dusty-rose); color: #fff;
+  font-size: 10px; font-weight: 700; letter-spacing: .8px; text-transform: uppercase;
+  padding: 4px 10px; border-radius: 50px; width: fit-content;
+}
+.card-tag.sage { background: var(--sage); }
+.card-name { font-size: 17px; font-weight: 700; color: var(--espresso); line-height: 1.3; }
+.card-desc {
+  font-size: 13px; color: var(--muted); line-height: 1.5;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+.card-footer {
+  padding: 0 18px 18px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.card-price { font-size: 20px; font-weight: 700; color: var(--espresso); }
+.card-price span { font-size: 13px; font-weight: 400; color: var(--muted); }
+.add-btn {
+  background: var(--espresso); color: #fff;
+  padding: 10px 18px; border-radius: var(--r-btn);
+  font-size: 12px; font-weight: 700; letter-spacing: .8px; text-transform: uppercase;
+  transition: background var(--transition), transform var(--transition);
+  transform: translateY(4px); opacity: 0;
+  pointer-events: none;
+}
+.product-card:hover .add-btn { transform: translateY(0); opacity: 1; pointer-events: auto; }
+.add-btn:hover { background: var(--amber); }
+.add-btn:active { transform: scale(.97) !important; }
+/* Out of stock */
+.card-out { position: relative; }
+.card-out::after {
+  content: 'Out of Stock';
+  position: absolute; inset: 0; border-radius: var(--r-card);
+  background: rgba(255,253,249,.75);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; font-weight: 700; color: var(--muted);
+  letter-spacing: 1px; text-transform: uppercase;
+  pointer-events: none;
+}
+
+/* ── ABOUT / STORY ──────────────────────────────────────── */
+#story { background: var(--cream); }
+.story-inner {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 64px; align-items: center;
+}
+.story-text { display: flex; flex-direction: column; gap: 20px; }
+.story-text .eyebrow { font-family: 'Dancing Script', cursive; font-size: 24px; color: var(--amber); }
+.story-text h2 {
+  font-family: 'Audiowide', sans-serif;
+  font-size: clamp(20px, 2.8vw, 34px); font-weight: 400;
+  color: var(--espresso); line-height: 1.25;
+}
+.story-text p { font-size: 16px; line-height: 1.8; color: var(--muted); }
+.story-sig {
+  font-family: 'Dancing Script', cursive;
+  font-size: 28px; color: var(--espresso);
+}
+.story-link {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-size: 14px; font-weight: 700; letter-spacing: .8px;
+  text-transform: uppercase; color: var(--amber);
+  transition: gap var(--transition);
+}
+.story-link:hover { gap: 14px; }
+.story-images {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 12px; position: relative;
+}
+.story-img {
+  aspect-ratio: 1; border-radius: 12px;
+  background: var(--cream);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 56px; overflow: hidden;
+  box-shadow: 0 8px 24px var(--shadow);
+}
+.story-img:nth-child(2) { margin-top: 24px; }
+.story-img:nth-child(3) { margin-top: -24px; }
+.story-img-bg {
+  background: linear-gradient(135deg, var(--beige), var(--cream));
+  transition: transform 400ms ease;
+}
+.story-img:hover .story-img-bg { transform: scale(1.03); }
+
+/* ── TESTIMONIALS ───────────────────────────────────────── */
+#testimonials { background: var(--warm-white); }
+.test-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+.test-card {
+  background: var(--beige);
+  border-radius: var(--r-card);
+  padding: 32px 28px;
+  position: relative;
+  border: 1px solid var(--border);
+  transition: transform var(--transition), box-shadow var(--transition);
+  display: flex; flex-direction: column; gap: 16px;
+}
+.test-card:hover { transform: translateY(-4px); box-shadow: 0 16px 40px var(--shadow); }
+.test-quote-mark {
+  font-family: 'Playfair Display', serif;
+  font-size: 80px; line-height: .8;
+  color: var(--border); position: absolute; top: 16px; left: 20px;
+  pointer-events: none; user-select: none;
+}
+.test-stars { color: var(--amber); font-size: 16px; letter-spacing: 2px; }
+.test-text { font-size: 15px; line-height: 1.7; color: var(--charcoal); position: relative; z-index: 1; }
+.test-author { display: flex; align-items: center; gap: 12px; margin-top: auto; }
+.test-avatar {
+  width: 44px; height: 44px; border-radius: 50%;
+  background: var(--cream);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px; border: 2px solid var(--border);
+}
+.test-name { font-size: 14px; font-weight: 700; color: var(--espresso); }
+.test-detail { font-size: 12px; color: var(--muted); }
+
+/* ── NEWSLETTER ─────────────────────────────────────────── */
+#newsletter {
+  background: var(--espresso);
+  padding: 80px 40px;
+  position: relative; overflow: hidden;
+  text-align: center;
+}
+#newsletter::before {
+  content: '🌾🌾🌾';
+  position: absolute; font-size: 120px;
+  opacity: .04; bottom: -20px; left: 50%; transform: translateX(-50%);
+  letter-spacing: 40px; white-space: nowrap;
+  pointer-events: none;
+}
+.newsletter-inner {
+  max-width: 560px; margin: 0 auto;
+  display: flex; flex-direction: column; gap: 20px; align-items: center;
+}
+.newsletter-inner h2 {
+  font-family: 'Audiowide', sans-serif;
+  font-size: clamp(20px, 3vw, 34px); font-weight: 400;
+  color: #fff; line-height: 1.25;
+}
+.newsletter-inner p { font-size: 15px; color: rgba(255,255,255,.65); line-height: 1.6; }
+.newsletter-form {
+  display: flex; gap: 0; width: 100%;
+  border-radius: 8px; overflow: hidden;
+  box-shadow: 0 4px 24px rgba(0,0,0,.25);
+}
+.newsletter-form input {
+  flex: 1; padding: 15px 20px;
+  border: none; outline: none;
+  font-family: 'Lato', sans-serif; font-size: 15px;
+  background: #fff; color: var(--charcoal);
+}
+.newsletter-form input::placeholder { color: #bbb; }
+.newsletter-form button {
+  background: var(--amber); color: #fff;
+  padding: 15px 28px;
+  font-family: 'Lato', sans-serif;
+  font-size: 13px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
+  white-space: nowrap;
+  transition: background var(--transition);
+  cursor: pointer; border: none;
+}
+.newsletter-form button:hover { background: var(--amber-l); }
+.newsletter-note { font-size: 12px; color: rgba(255,255,255,.4); }
+
+/* ── FOOTER ─────────────────────────────────────────────── */
+footer {
+  background: var(--espresso-d);
+  padding: 64px 40px 32px;
+  color: rgba(255,255,255,.7);
+}
+.footer-grid {
+  max-width: 1280px; margin: 0 auto;
+  display: grid; grid-template-columns: 2fr 1fr 1fr;
+  gap: 48px; margin-bottom: 48px; max-width: 900px;
+}
+.footer-brand .logo { color: #fff; font-family: 'Audiowide', sans-serif; font-size: 18px; font-weight: 400; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+.footer-brand p { font-size: 14px; line-height: 1.7; max-width: 260px; }
+.footer-socials { display: flex; gap: 12px; margin-top: 20px; }
+.social-icon {
+  width: 38px; height: 38px; border-radius: 50%;
+  background: rgba(255,255,255,.1);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; transition: background var(--transition);
+}
+.social-icon:hover { background: var(--amber); }
+footer h4 { font-size: 13px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: #fff; margin-bottom: 18px; }
+footer ul { display: flex; flex-direction: column; gap: 10px; }
+footer ul li a { font-size: 14px; color: rgba(255,255,255,.6); transition: color var(--transition); }
+footer ul li a:hover { color: var(--amber); }
+.footer-contact p { font-size: 14px; margin-bottom: 8px; display: flex; gap: 8px; align-items: flex-start; }
+.footer-contact .contact-icon { font-size: 16px; margin-top: 2px; flex-shrink: 0; }
+.footer-bottom {
+  max-width: 1280px; margin: 0 auto;
+  padding-top: 24px; border-top: 1px solid rgba(255,255,255,.1);
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 13px; flex-wrap: wrap; gap: 12px;
+}
+.footer-bottom a { color: rgba(255,255,255,.5); margin-left: 20px; transition: color var(--transition); }
+.footer-bottom a:hover { color: var(--amber); }
+
+/* ── CART DRAWER ────────────────────────────────────────── */
+#cart-overlay {
+  position: fixed; inset: 0; z-index: 900;
+  background: rgba(0,0,0,.5);
+  opacity: 0; pointer-events: none;
+  transition: opacity 300ms;
+}
+#cart-overlay.open { opacity: 1; pointer-events: auto; }
+#cart-drawer {
+  position: fixed; top: 0; right: 0; bottom: 0;
+  width: min(420px, 100vw); z-index: 901;
+  background: var(--warm-white);
+  transform: translateX(100%);
+  transition: transform 400ms cubic-bezier(.4,0,.2,1);
+  display: flex; flex-direction: column;
+}
+#cart-drawer.open { transform: translateX(0); }
+.cart-header {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 24px; border-bottom: 1px solid var(--border);
+}
+.cart-header h3 { font-family: 'Audiowide', sans-serif; font-size: 20px; color: var(--espresso); }
+.cart-close { font-size: 24px; cursor: pointer; color: var(--muted); transition: color var(--transition); }
+.cart-close:hover { color: var(--espresso); }
+#cart-items { flex: 1; overflow-y: auto; padding: 20px 24px; display: flex; flex-direction: column; gap: 16px; }
+.cart-empty {
+  text-align: center; padding: 60px 20px;
+  color: var(--muted); font-size: 15px;
+}
+.cart-empty .empty-icon { font-size: 56px; margin-bottom: 16px; }
+.cart-item {
+  display: flex; gap: 14px; align-items: center;
+  background: var(--beige); border-radius: 10px; padding: 12px;
+  border: 1px solid var(--border);
+}
+.cart-item-img { font-size: 36px; width: 56px; text-align: center; flex-shrink: 0; }
+.cart-item-info { flex: 1; min-width: 0; }
+.cart-item-name { font-size: 14px; font-weight: 700; color: var(--espresso); }
+.cart-item-price { font-size: 13px; color: var(--muted); margin-top: 2px; }
+.cart-item-qty {
+  display: flex; align-items: center; gap: 8px; margin-top: 6px;
+}
+.qty-btn {
+  width: 26px; height: 26px; border-radius: 50%;
+  background: #fff; border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; cursor: pointer; font-weight: 700; color: var(--espresso);
+  transition: background var(--transition);
+}
+.qty-btn:hover { background: var(--cream); }
+.qty-val { font-size: 14px; font-weight: 700; min-width: 20px; text-align: center; }
+.cart-item-remove { font-size: 18px; cursor: pointer; color: var(--muted); transition: color var(--transition); flex-shrink: 0; }
+.cart-item-remove:hover { color: var(--dusty-rose); }
+.cart-footer { padding: 20px 24px; border-top: 1px solid var(--border); }
+.cart-total { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+.cart-total span { font-size: 14px; color: var(--muted); }
+.cart-total strong { font-family: 'Audiowide', sans-serif; font-size: 22px; color: var(--espresso); }
+.checkout-btn {
+  width: 100%; background: var(--espresso); color: #fff;
+  padding: 16px; border-radius: var(--r-btn);
+  font-size: 15px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
+  transition: background var(--transition);
+}
+.checkout-btn:hover { background: var(--amber); }
+
+/* ── ANIMATIONS ─────────────────────────────────────────── */
+@keyframes fadeUp {
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes scaleIn {
+  to { opacity: 1; transform: scale(1); }
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-10px); }
+}
+@keyframes bounce {
+  0%, 100% { transform: rotate(45deg) translate(0, 0); }
+  50%       { transform: rotate(45deg) translate(4px, 4px); }
+}
+
+/* Scroll reveal */
+.reveal {
+  opacity: 0; transform: translateY(28px);
+  transition: opacity 600ms ease, transform 600ms ease;
+}
+.reveal.visible { opacity: 1; transform: translateY(0); }
+
+/* ── RESPONSIVE ─────────────────────────────────────────── */
+@media (max-width: 1024px) {
+  .product-grid { grid-template-columns: repeat(3, 1fr); }
+  .usp-grid { grid-template-columns: repeat(2, 1fr); }
+  .footer-grid { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 768px) {
+  #nav { padding: 0 20px; }
+  .nav-links, .nav-cta { display: none; }
+  .hamburger { display: flex; }
+  .hero-inner { grid-template-columns: 1fr; gap: 40px; text-align: center; padding-top: 40px; }
+  .hero-visual { order: -1; }
+  .hero-btns { justify-content: center; }
+  .hero-badges { justify-content: center; }
+  .hero-float-label.fl-1 { display: none; }
+  .hero-float-label.fl-2 { display: none; }
+  .section { padding: 48px 20px; }
+  #usp { padding: 40px 20px; }
+  .product-grid { grid-template-columns: repeat(2, 1fr); }
+  .test-grid { grid-template-columns: 1fr; }
+  .story-inner { grid-template-columns: 1fr; gap: 32px; }
+  .cat-track { gap: 12px; }
+  .cat-circle { width: 70px; height: 70px; font-size: 28px; }
+  footer { padding: 48px 20px 24px; }
+  .footer-grid { grid-template-columns: 1fr; gap: 32px; }
+  .footer-bottom { flex-direction: column; text-align: center; }
+  #newsletter { padding: 48px 20px; }
+  .newsletter-form { flex-direction: column; border-radius: 8px; }
+  .newsletter-form input, .newsletter-form button { width: 100%; border-radius: 0; }
+  .newsletter-form input { border-radius: 8px 8px 0 0; }
+  .newsletter-form button { border-radius: 0 0 8px 8px; }
+}
+@media (max-width: 480px) {
+  .product-grid { grid-template-columns: 1fr; }
+  .usp-grid { grid-template-columns: 1fr; }
+  .hero-circle { width: 240px; height: 240px; font-size: 90px; }
+}
+
+/* =================================================================
+   UPPER CRUST — BACKEND CSS
+   Modals, forms, checkout, admin, order history
+   ================================================================= */
+
+/* Login btn */
+.nav-login-btn { font-size: 17px; }
+
+/* Modal overlay */
+#modal-overlay {
+  display: none; position: fixed; inset: 0; z-index: 1000;
+  background: rgba(0,0,0,.52); backdrop-filter: blur(3px);
+}
+#modal-overlay.show { display: block; }
+
+/* Modal shell */
+.uc-modal {
+  display: none; position: fixed; inset: 0; z-index: 1001;
+  justify-content: center; align-items: flex-start;
+  padding: 24px 16px; overflow-y: auto;
+}
+.uc-modal.show { display: flex; }
+.uc-modal .box {
+  background: var(--warm-white); border-radius: 20px;
+  width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto;
+  box-shadow: 0 24px 80px rgba(0,0,0,.18);
+  animation: popIn 260ms cubic-bezier(.34,1.56,.64,1);
+  margin: auto;
+}
+.uc-modal.wide .box  { max-width: 840px; }
+.uc-modal.xl   .box  { max-width: 1080px; }
+@keyframes popIn {
+  from { opacity: 0; transform: scale(.93) translateY(18px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* Modal header */
+.mhdr {
+  display: flex; align-items: center; gap: 10px;
+  padding: 20px 24px 16px; border-bottom: 1px solid var(--border);
+  position: sticky; top: 0; background: var(--warm-white);
+  border-radius: 20px 20px 0 0; z-index: 2;
+}
+.mhdr h2 {
+  font-family: 'Audiowide', sans-serif; font-size: 16px;
+  color: var(--espresso); flex: 1; margin: 0;
+}
+.mclose {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: var(--cream); color: var(--espresso);
+  font-size: 13px; font-weight: 700; border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: background var(--transition); flex-shrink: 0;
+}
+.mclose:hover { background: var(--border); }
+.mback {
+  font-size: 12px; font-weight: 700; color: var(--muted);
+  border: none; background: none; cursor: pointer; white-space: nowrap;
+}
+.mback:hover { color: var(--espresso); }
+.mbody { padding: 22px 24px 28px; }
+
+/* Forms */
+.fg { display: flex; flex-direction: column; gap: 5px; margin-bottom: 14px; }
+.fg label { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: .4px; color: var(--charcoal); }
+.fg input, .fg select, .fg textarea {
+  padding: 11px 13px; border: 1.5px solid var(--border);
+  border-radius: var(--r-btn); font-size: 14px; font-family: inherit;
+  background: #fff; color: var(--charcoal); outline: none;
+  transition: border-color var(--transition), box-shadow var(--transition);
+}
+.fg input:focus, .fg select:focus, .fg textarea:focus {
+  border-color: var(--espresso); box-shadow: 0 0 0 3px rgba(194,24,91,.10);
+}
+.fg textarea { resize: vertical; min-height: 70px; }
+.frow { display: flex; gap: 10px; }
+.frow .fg { flex: 1; min-width: 0; }
+.pw-wrap { position: relative; }
+.pw-wrap input { width: 100%; padding-right: 40px; }
+.pw-eye {
+  position: absolute; right: 11px; top: 50%; transform: translateY(-50%);
+  background: none; border: none; cursor: pointer; font-size: 15px; color: var(--muted);
+}
+.ferr { background: #fef2f2; border: 1px solid #fecaca; color: #dc2626; padding: 9px 13px; border-radius: 8px; font-size: 13px; font-weight: 600; margin-bottom: 12px; display: none; }
+.fok  { background: #f0fdf4; border: 1px solid #bbf7d0; color: #16a34a; padding: 9px 13px; border-radius: 8px; font-size: 13px; font-weight: 600; margin-bottom: 12px; display: none; }
+.chk-row { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); cursor: pointer; margin: -4px 0 10px; }
+
+/* Buttons */
+.btn-p { background: var(--espresso); color: #fff; padding: 12px 22px; border-radius: var(--r-btn); font-size: 14px; font-weight: 700; border: none; cursor: pointer; font-family: inherit; transition: background var(--transition), transform var(--transition); }
+.btn-p:hover { background: var(--espresso-d); transform: translateY(-1px); }
+.btn-o { background: transparent; color: var(--espresso); border: 1.5px solid var(--espresso); padding: 10px 18px; border-radius: var(--r-btn); font-size: 14px; font-weight: 700; cursor: pointer; font-family: inherit; transition: background var(--transition); }
+.btn-o:hover { background: var(--cream); }
+.btn-full { width: 100%; }
+.btn-sm { padding: 5px 11px; font-size: 12px; }
+.btn-del { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; padding: 5px 11px; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer; font-family: inherit; }
+.btn-del:hover { background: #fee2e2; }
+.btn-logout { width: 100%; margin-top: 18px; padding: 10px; border-radius: var(--r-btn); font-size: 13px; font-weight: 700; color: var(--muted); background: transparent; border: 1.5px solid var(--border); cursor: pointer; font-family: inherit; transition: all var(--transition); }
+.btn-logout:hover { color: #dc2626; border-color: #fecaca; background: #fef2f2; }
+.brow { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 6px; }
+
+/* Auth */
+.auth-or { display: flex; align-items: center; gap: 10px; margin: 14px 0; color: var(--muted); font-size: 12px; }
+.auth-or::before, .auth-or::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+.auth-sw { text-align: center; font-size: 13px; color: var(--muted); margin-top: 12px; }
+.auth-sw a { color: var(--espresso); font-weight: 700; text-decoration: none; }
+
+/* Section label */
+.slabel { font-family: 'Audiowide', sans-serif; font-size: 11px; color: var(--espresso); margin-bottom: 12px; letter-spacing: .5px; }
+
+/* Checkout grid */
+.co-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
+@media(max-width:680px) { .co-grid { grid-template-columns: 1fr; } }
+.co-item { display: flex; align-items: center; gap: 10px; padding: 7px 0; border-bottom: 1px solid var(--border); }
+.co-item:last-child { border: none; }
+.co-thumb { width: 42px; height: 42px; border-radius: 8px; object-fit: cover; flex-shrink: 0; }
+.co-iname { font-size: 13px; font-weight: 700; }
+.co-iqty  { font-size: 12px; color: var(--muted); }
+.co-iprice { font-size: 13px; font-weight: 700; color: var(--espresso); white-space: nowrap; margin-left: auto; }
+.totals { margin-top: 14px; }
+.trow { display: flex; justify-content: space-between; font-size: 14px; padding: 5px 0; }
+.trow.grand { font-size: 17px; font-weight: 800; border-top: 2px solid var(--border); padding-top: 10px; margin-top: 4px; }
+.free-del-tip { font-size: 12px; color: #16a34a; background: #f0fdf4; padding: 5px 10px; border-radius: 6px; margin: 4px 0; }
+.co-note { text-align: center; font-size: 12px; color: var(--muted); margin-top: 8px; }
+
+/* Payment */
+.pay-opts { display: flex; flex-direction: column; gap: 8px; }
+.pay-opt { border: 1.5px solid var(--border); border-radius: 12px; padding: 12px 14px; cursor: pointer; transition: border-color var(--transition), background var(--transition); display: flex; align-items: center; }
+.pay-opt:has(input:checked) { border-color: var(--espresso); background: var(--beige); }
+.pay-opt input[type=radio] { display: none; }
+.pay-body { display: flex; align-items: center; gap: 12px; width: 100%; }
+.pay-icon { font-size: 22px; }
+.pay-body div { display: flex; flex-direction: column; gap: 2px; }
+.pay-body strong { font-size: 14px; font-weight: 700; }
+.pay-body small { font-size: 12px; color: var(--muted); }
+.qr-box { width: 130px; height: 130px; background: #fff; margin: 0 auto 10px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 72px; box-shadow: 0 2px 12px var(--shadow); }
+
+/* Confirmation */
+.conf-icon { font-size: 64px; text-align: center; margin-bottom: 10px; }
+.conf-title { font-family: 'Audiowide', sans-serif; font-size: 20px; text-align: center; color: var(--espresso); margin-bottom: 8px; }
+.conf-card { background: var(--beige); border-radius: 12px; padding: 14px 18px; margin-bottom: 16px; }
+.conf-row { display: flex; justify-content: space-between; align-items: center; padding: 5px 0; font-size: 13px; border-bottom: 1px solid var(--border); gap: 12px; }
+.conf-row:last-child { border: none; }
+.conf-row span { color: var(--muted); white-space: nowrap; }
+.conf-tbl { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 14px; }
+.conf-tbl th, .conf-tbl td { padding: 7px 8px; border-bottom: 1px solid var(--border); text-align: left; }
+.conf-tbl thead { background: var(--cream); }
+
+/* Status badge */
+.sbadge { display: inline-block; padding: 2px 9px; border-radius: 20px; font-size: 11px; font-weight: 700; white-space: nowrap; }
+
+/* Account */
+.acct-top { display: flex; align-items: center; gap: 14px; background: var(--beige); border-radius: 14px; padding: 16px 18px; margin-bottom: 20px; }
+.acct-av { width: 50px; height: 50px; border-radius: 50%; background: var(--espresso); color: #fff; font-family: 'Audiowide', sans-serif; font-size: 20px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.acct-top h3 { font-size: 16px; font-weight: 800; margin: 0 0 2px; }
+.acct-top p  { font-size: 13px; color: var(--muted); margin: 0 0 5px; }
+.rbadge { display: inline-block; padding: 2px 9px; border-radius: 20px; font-size: 11px; font-weight: 700; background: var(--sage); color: #fff; }
+.rbadge.admin { background: var(--espresso); }
+
+/* Order card */
+.ocard { border: 1.5px solid var(--border); border-radius: 14px; padding: 13px 16px; margin-bottom: 10px; transition: box-shadow var(--transition); }
+.ocard:hover { box-shadow: 0 4px 20px var(--shadow); }
+.ocard-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; gap: 8px; }
+.ocard-id   { font-size: 13px; font-weight: 800; }
+.ocard-date { font-size: 12px; color: var(--muted); }
+.ocard-items { font-size: 13px; color: var(--muted); margin-bottom: 8px; }
+.ocard-bot  { display: flex; justify-content: space-between; align-items: center; }
+.ocard-city { font-size: 12px; color: var(--muted); }
+.ocard-total { font-size: 16px; font-weight: 800; color: var(--espresso); }
+
+/* Admin stats */
+.stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+@media(max-width:560px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
+.stat-box { background: var(--beige); border-radius: 12px; padding: 15px; text-align: center; border: 1.5px solid var(--border); }
+.stat-box.warn   { border-color: #fcd34d; background: #fffbeb; }
+.stat-box.danger { border-color: #fca5a5; background: #fef2f2; }
+.stat-v { font-family: 'Audiowide', sans-serif; font-size: 20px; color: var(--espresso); }
+.stat-l { font-size: 11px; color: var(--muted); margin-top: 3px; font-weight: 600; }
+
+/* Admin table */
+.tbl-wrap { overflow-x: auto; margin-top: 8px; }
+.atbl { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 540px; }
+.atbl th { text-align: left; padding: 8px 10px; background: var(--cream); font-size: 11px; font-weight: 800; letter-spacing: .4px; color: var(--espresso); white-space: nowrap; }
+.atbl td { padding: 10px 10px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+.atbl tr:hover td { background: var(--beige); }
+.action-btn { display: inline-block; padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer; margin: 2px; white-space: nowrap; font-family: inherit; border-width: 1px; border-style: solid; transition: opacity .15s; }
+.action-btn:hover { opacity: .75; }
+
+/* Toggle switch */
+.tog { position: relative; display: inline-flex; align-items: center; cursor: pointer; gap: 8px; }
+.tog input { opacity: 0; width: 0; height: 0; position: absolute; }
+.tog-sl { width: 36px; height: 20px; background: #d1d5db; border-radius: 10px; transition: background .2s; flex-shrink: 0; position: relative; }
+.tog-sl::before { content: ''; position: absolute; width: 14px; height: 14px; left: 3px; top: 3px; background: #fff; border-radius: 50%; transition: transform .2s; }
+.tog input:checked + .tog-sl { background: var(--espresso); }
+.tog input:checked + .tog-sl::before { transform: translateX(16px); }
+
+/* Empty state */
+.empty-st { text-align: center; padding: 48px 20px; color: var(--muted); }
+.empty-st .ei { font-size: 48px; margin-bottom: 10px; }
+
+/* Mobile bottom sheet */
+@media(max-width:480px) {
+  .uc-modal { align-items: flex-end; padding: 0; }
+  .uc-modal .box { border-radius: 18px 18px 0 0; margin: auto 0 0; max-height: 93vh; }
+  .mhdr { padding: 16px 18px 12px; }
+  .mbody { padding: 18px 18px 26px; }
+}
+
+</style>
+</head>
+<body>
+
+<!-- Skip Nav -->
+<a class="skip-nav" href="#products">Skip to main content</a>
+
+<!-- Toast -->
+<div id="toast" role="status" aria-live="polite">
+  <span class="icon">🛒</span>
+  <span id="toast-msg">Added to cart!</span>
+</div>
+
+<!-- Mobile Nav -->
+<div id="mobile-nav" role="dialog" aria-label="Navigation menu">
+  <button class="close-mobile" id="close-mobile" aria-label="Close menu">✕</button>
+  <a href="#" onclick="closeMobileNav()">Home</a>
+  <a href="#story" onclick="closeMobileNav()">Our Story</a>
+  <a href="#categories" onclick="closeMobileNav()">Menu</a>
+  <a href="#products" onclick="closeMobileNav()">Specials</a>
+  <a href="#testimonials" onclick="closeMobileNav()">Reviews</a>
+  <a href="#newsletter" onclick="closeMobileNav()">Contact</a>
+  <a href="#" id="mob-login-link" onclick="closeMobileNav();showModal('login')">👤 Login</a>
+  <a href="#" id="mob-admin-link" style="display:none" onclick="closeMobileNav();showModal('admin')">🛠 Admin</a>
+</div>
+
+<!-- Navigation -->
+<nav id="nav" role="navigation" aria-label="Main navigation">
+  <a href="#" class="nav-logo">
+    <span class="bread-icon">🍞</span>
+    <span>Upper Crust</span>
+  </a>
+  <ul class="nav-links" role="list">
+    <li><a href="#" class="active">Home</a></li>
+    <li><a href="#story">Our Story</a></li>
+    <li><a href="#categories">Menu</a></li>
+    <li><a href="#products">Specials</a></li>
+    <li><a href="#testimonials">Reviews</a></li>
+    <li><a href="#newsletter">Contact</a></li>
+  </ul>
+  <div class="nav-actions">
+    <button class="icon-btn" aria-label="Search" onclick="showToast('Search feature coming soon!')">🔍</button>
+    <button class="icon-btn cart-btn" id="cart-trigger" aria-label="Open cart">
+      🛒
+      <span class="cart-badge" id="cart-badge" aria-label="items in cart">0</span>
+    </button>
+    <a href="#products" class="nav-cta">Order Now</a>
+    <button id="nav-admin-btn" class="icon-btn nav-login-btn" title="Admin Dashboard" onclick="openModal('admin')" style="display:none">🛠</button>
+    <button id="nav-auth-btn" class="icon-btn nav-login-btn" title="Login / Sign up" onclick="showModal('login')">👤</button>
+    <button class="hamburger" id="hamburger" aria-label="Open menu" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</nav>
+
+<!-- Cart Overlay -->
+<div id="cart-overlay" onclick="closeCart()"></div>
+<aside id="cart-drawer" aria-label="Shopping cart">
+  <div class="cart-header">
+    <h3>Your Cart 🧺</h3>
+    <button class="cart-close" onclick="closeCart()" aria-label="Close cart">✕</button>
+  </div>
+  <div id="cart-items">
+    <div class="cart-empty">
+      <div class="empty-icon">🧁</div>
+      <p>Your cart is empty.<br/>Add something delicious!</p>
+    </div>
+  </div>
+  <div class="cart-footer" id="cart-footer" style="display:none">
+    <div class="cart-total">
+      <span>Total</span>
+      <strong id="cart-total-price">₹0</strong>
+    </div>
+    <button class="checkout-btn" onclick="openCheckout()">
+      Proceed to Checkout →
+    </button>
+  </div>
+</aside>
+
+<!-- ══ HERO ════════════════════════════════════════════════ -->
+<section id="hero" aria-label="Hero section">
+  <div class="hero-inner">
+    <div class="hero-text">
+      <span class="hero-tagline">Baked fresh, every single day</span>
+      <h1 class="hero-title">
+        Artisan Bakes<br/>Made with <em>Love</em>
+      </h1>
+      <p class="hero-sub">
+        Family recipes, premium ingredients, and three generations of craft —
+        delivered to your door by 6 PM.
+      </p>
+      <div class="hero-btns">
+        <a href="#products" class="btn-primary">Shop Now</a>
+        <a href="#story" class="btn-outline">Our Story</a>
+      </div>
+      <div class="hero-badges">
+        <span class="badge">✋ 100% Handmade</span>
+        <span class="badge">🌅 Fresh Daily</span>
+        <span class="badge"><span class="stars">★★★★★</span> 4.9 Rating</span>
+      </div>
+    </div>
+    <div class="hero-visual">
+      <div class="crumb"></div>
+      <div class="crumb"></div>
+      <div class="crumb"></div>
+      <div class="crumb"></div>
+      <div class="crumb"></div>
+      <div class="hero-float-label fl-1">
+        <span class="fl-icon">🚚</span>
+        <div class="fl-text">
+          <strong>Same-Day Delivery</strong>
+          <span>Order before noon</span>
+        </div>
+      </div>
+      <div class="hero-circle"><img src="https://images.unsplash.com/photo-1509440159596-0249088772ff?w=520&h=520&fit=crop&crop=center" alt="Freshly baked artisan bread" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"/></div>
+      <div class="hero-float-label fl-2">
+        <span class="fl-icon">🎂</span>
+        <div class="fl-text">
+          <strong>Custom Orders</strong>
+          <span>Cakes & celebrations</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="scroll-indicator" aria-hidden="true">
+    <span>Scroll</span>
+    <div class="scroll-arrow"></div>
+  </div>
+</section>
+
+<!-- ══ USP STRIP ══════════════════════════════════════════ -->
+<section id="usp" aria-label="Our promises">
+  <div class="usp-grid">
+    <div class="usp-item reveal">
+      <span class="usp-icon" style="font-size:0"><img src="https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?w=80&h=80&fit=crop" alt="Premium wheat" style="width:64px;height:64px;border-radius:50%;object-fit:cover;box-shadow:0 4px 12px rgba(194,24,91,.15);border:3px solid var(--dusty-rose)"/></span>
+      <h3>Premium Ingredients</h3>
+      <p>Only the finest flour, butter &amp; seasonal produce</p>
+    </div>
+    <div class="usp-item reveal" style="transition-delay:100ms">
+      <span class="usp-icon" style="font-size:0"><img src="https://images.unsplash.com/photo-1483695028939-5bb13f8648b0?w=80&h=80&fit=crop" alt="Fresh pastries" style="width:64px;height:64px;border-radius:50%;object-fit:cover;box-shadow:0 4px 12px rgba(194,24,91,.15);border:3px solid var(--dusty-rose)"/></span>
+      <h3>Baked Fresh Daily</h3>
+      <p>Out of the oven every morning before 7 AM</p>
+    </div>
+    <div class="usp-item reveal" style="transition-delay:200ms">
+      <span class="usp-icon" style="font-size:0"><img src="https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=80&h=80&fit=crop" alt="Delivery box" style="width:64px;height:64px;border-radius:50%;object-fit:cover;box-shadow:0 4px 12px rgba(194,24,91,.15);border:3px solid var(--dusty-rose)"/></span>
+      <h3>Same-Day Delivery</h3>
+      <p>Order before noon, delivered by 6 PM</p>
+    </div>
+    <div class="usp-item reveal" style="transition-delay:300ms">
+      <span class="usp-icon" style="font-size:0"><img src="https://images.unsplash.com/photo-1464349095431-e9a21285b5f3?w=80&h=80&fit=crop" alt="Baked with love" style="width:64px;height:64px;border-radius:50%;object-fit:cover;box-shadow:0 4px 12px rgba(194,24,91,.15);border:3px solid var(--dusty-rose)"/></span>
+      <h3>Made With Love</h3>
+      <p>Family recipes passed down for three generations</p>
+    </div>
+  </div>
+</section>
+
+<!-- ══ CATEGORIES ══════════════════════════════════════════ -->
+<section id="categories" aria-label="Product categories">
+  <div class="container">
+    <div class="section-header reveal">
+      <span class="section-eyebrow">Browse by category</span>
+      <h2 class="section-title">What are you <span class="underline-deco">craving?</span></h2>
+    </div>
+    <div class="cat-track" id="cat-track" role="list">
+      <div class="cat-tile active" onclick="filterProducts('all')" role="button" tabindex="0" aria-pressed="true">
+        <div class="cat-circle" style="overflow:hidden;padding:0"><img src="https://images.unsplash.com/photo-1509440159596-0249088772ff?w=90&h=90&fit=crop" alt="All Items" style="width:100%;height:100%;object-fit:cover;border-radius:50%"/></div>
+        <span class="cat-label">All Items</span>
+      </div>
+      <div class="cat-tile" onclick="filterProducts('bread')" role="button" tabindex="0">
+        <div class="cat-circle" style="overflow:hidden;padding:0"><img src="https://images.unsplash.com/photo-1549931319-a545dcf3bc73?w=90&h=90&fit=crop" alt="Breads" style="width:100%;height:100%;object-fit:cover;border-radius:50%"/></div>
+        <span class="cat-label">Breads</span>
+      </div>
+      <div class="cat-tile" onclick="filterProducts('cake')" role="button" tabindex="0">
+        <div class="cat-circle" style="overflow:hidden;padding:0"><img src="https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=90&h=90&fit=crop" alt="Cakes" style="width:100%;height:100%;object-fit:cover;border-radius:50%"/></div>
+        <span class="cat-label">Cakes</span>
+      </div>
+      <div class="cat-tile" onclick="filterProducts('pastry')" role="button" tabindex="0">
+        <div class="cat-circle" style="overflow:hidden;padding:0"><img src="https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=90&h=90&fit=crop" alt="Pastries" style="width:100%;height:100%;object-fit:cover;border-radius:50%"/></div>
+        <span class="cat-label">Pastries</span>
+      </div>
+      <div class="cat-tile" onclick="filterProducts('cookie')" role="button" tabindex="0">
+        <div class="cat-circle" style="overflow:hidden;padding:0"><img src="https://images.unsplash.com/photo-1499636136210-6f4ee915583e?w=90&h=90&fit=crop" alt="Cookies" style="width:100%;height:100%;object-fit:cover;border-radius:50%"/></div>
+        <span class="cat-label">Cookies</span>
+      </div>
+      <div class="cat-tile" onclick="filterProducts('seasonal')" role="button" tabindex="0">
+        <div class="cat-circle" style="overflow:hidden;padding:0"><img src="https://images.unsplash.com/photo-1488477304112-4944851de03d?w=90&h=90&fit=crop" alt="Seasonal" style="width:100%;height:100%;object-fit:cover;border-radius:50%"/></div>
+        <span class="cat-label">Seasonal</span>
+      </div>
+      <div class="cat-tile" onclick="filterProducts('gift')" role="button" tabindex="0">
+        <div class="cat-circle" style="overflow:hidden;padding:0"><img src="https://images.unsplash.com/photo-1513519245088-0e12902e35ca?w=90&h=90&fit=crop" alt="Gift Boxes" style="width:100%;height:100%;object-fit:cover;border-radius:50%"/></div>
+        <span class="cat-label">Gift Boxes</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ PRODUCTS ════════════════════════════════════════════ -->
+<section class="section" id="products" aria-label="Our products">
+  <div class="container">
+    <div class="section-header reveal">
+      <span class="section-eyebrow">From our kitchen</span>
+      <h2 class="section-title">Our <span class="underline-deco">Bestsellers</span></h2>
+    </div>
+    <div class="product-grid" id="product-grid" aria-live="polite">
+      <!-- injected by JS -->
+    </div>
+  </div>
+</section>
+
+<!-- ══ STORY ═══════════════════════════════════════════════ -->
+<section class="section" id="story" aria-label="Our story">
+  <div class="container story-inner">
+    <div class="story-text reveal">
+      <span class="eyebrow">Our Story</span>
+      <h2>Three generations of baking tradition</h2>
+      <p>
+        What started in a small home kitchen in 1968 has grown into the neighbourhood's
+        most beloved bakery. Every loaf, cake, and pastry is still made by hand using
+        recipes passed down from our grandmother — with a few modern flourishes.
+      </p>
+      <p>
+        We source our flour from local mills, our butter from family-run dairies, and
+        our seasonal fruits directly from nearby farms. Because the best ingredients
+        make the best memories.
+      </p>
+      <span class="story-sig">— The Upper Crust Family 🥖</span>
+      <a href="#" class="story-link" onclick="showToast('Our Story page coming soon!')">
+        Meet Our Bakers →
+      </a>
+    </div>
+    <div class="story-images reveal" style="transition-delay:200ms">
+      <div class="story-img" style="overflow:hidden;"><img src="https://images.unsplash.com/photo-1573497491765-dccce02b29df?w=400&h=400&fit=crop" alt="Artisan bread" style="width:100%;height:100%;object-fit:cover;transition:transform 400ms ease;" onmouseover="this.style.transform='scale(1.06)'" onmouseout="this.style.transform='scale(1)'"/></div>
+      <div class="story-img" style="overflow:hidden;"><img src="https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&h=400&fit=crop" alt="Baker at work" style="width:100%;height:100%;object-fit:cover;transition:transform 400ms ease;" onmouseover="this.style.transform='scale(1.06)'" onmouseout="this.style.transform='scale(1)'"/></div>
+      <div class="story-img" style="overflow:hidden;"><img src="https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=400&h=400&fit=crop" alt="Beautiful cake" style="width:100%;height:100%;object-fit:cover;transition:transform 400ms ease;" onmouseover="this.style.transform='scale(1.06)'" onmouseout="this.style.transform='scale(1)'"/></div>
+      <div class="story-img" style="overflow:hidden;"><img src="https://images.unsplash.com/photo-1517433670267-08bbd4be890f?w=400&h=400&fit=crop" alt="Bakery interior" style="width:100%;height:100%;object-fit:cover;transition:transform 400ms ease;" onmouseover="this.style.transform='scale(1.06)'" onmouseout="this.style.transform='scale(1)'"/></div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ TESTIMONIALS ════════════════════════════════════════ -->
+<section class="section" id="testimonials" aria-label="Customer reviews">
+  <div class="container">
+    <div class="section-header reveal">
+      <span class="section-eyebrow">Happy customers</span>
+      <h2 class="section-title">What people are <span class="underline-deco">saying</span></h2>
+    </div>
+    <div class="test-grid">
+      <div class="test-card reveal">
+        <div class="test-quote-mark" aria-hidden="true">"</div>
+        <div class="test-stars" aria-label="5 out of 5 stars">★★★★★</div>
+        <p class="test-text">
+          The sourdough is absolutely incredible — crispy crust, pillowy inside.
+          I order two loaves every Saturday and my family fights over the last slice.
+        </p>
+        <div class="test-author">
+          <div class="test-avatar">👩</div>
+          <div>
+            <div class="test-name">Priya S.</div>
+            <div class="test-detail">Verified purchase · Sourdough Bread</div>
+          </div>
+        </div>
+      </div>
+      <div class="test-card reveal" style="transition-delay:100ms">
+        <div class="test-quote-mark" aria-hidden="true">"</div>
+        <div class="test-stars" aria-label="5 out of 5 stars">★★★★★</div>
+        <p class="test-text">
+          Ordered a custom birthday cake and it was beyond stunning.
+          The mango cream sponge was the highlight of the whole party.
+          Will definitely order again!
+        </p>
+        <div class="test-author">
+          <div class="test-avatar">👨</div>
+          <div>
+            <div class="test-name">Rahul M.</div>
+            <div class="test-detail">Verified purchase · Custom Cake</div>
+          </div>
+        </div>
+      </div>
+      <div class="test-card reveal" style="transition-delay:200ms">
+        <div class="test-quote-mark" aria-hidden="true">"</div>
+        <div class="test-stars" aria-label="5 out of 5 stars">★★★★★</div>
+        <p class="test-text">
+          Same-day delivery is a game changer. Croissants arrived warm and
+          perfectly flaky. The packaging is gorgeous too — perfect for gifting.
+        </p>
+        <div class="test-author">
+          <div class="test-avatar">👩</div>
+          <div>
+            <div class="test-name">Ananya K.</div>
+            <div class="test-detail">Verified purchase · Croissant Box</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ NEWSLETTER ══════════════════════════════════════════ -->
+<section id="newsletter" aria-label="Newsletter signup">
+  <div class="newsletter-inner reveal">
+    <h2>Fresh news, weekly recipes &amp; exclusive offers</h2>
+    <p>Join 2,400+ baking lovers who get our weekly newsletter. No spam, ever.</p>
+    <form class="newsletter-form" onsubmit="handleNewsletter(event)">
+      <input type="email" placeholder="Your email address" required aria-label="Email address"/>
+      <button type="submit">Subscribe</button>
+    </form>
+    <span class="newsletter-note">Unsubscribe anytime. We respect your inbox.</span>
+  </div>
+</section>
+
+<!-- ══ FOOTER ══════════════════════════════════════════════ -->
+<footer>
+  <div class="footer-grid">
+    <div class="footer-brand">
+      <div class="logo"><span>🍞</span> Upper Crust</div>
+      <p>Artisan bakes made fresh every morning with love, tradition, and the finest local ingredients since 1968.</p>
+      <div class="footer-socials">
+        <a href="#" class="social-icon" aria-label="Instagram">📸</a>
+        <a href="#" class="social-icon" aria-label="Facebook">📘</a>
+        <a href="#" class="social-icon" aria-label="Pinterest">📌</a>
+        <a href="#" class="social-icon" aria-label="WhatsApp">💬</a>
+      </div>
+    </div>
+    <div>
+      <h4>Quick Links</h4>
+      <ul>
+        <li><a href="#">Home</a></li>
+        <li><a href="#categories">Menu</a></li>
+        <li><a href="#story">About Us</a></li>
+        <li><a href="#" onclick="openModal('blog');return false">Blog</a></li>
+        <li><a href="#" onclick="openModal('careers');return false">Careers</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Customer Care</h4>
+      <ul>
+        <li><a href="#" onclick="showToast('Order tracking coming in Phase 3!')" onclick="openModal('orders');return false">Track Order</a></li>
+        <li><a href="#" onclick="openModal('returns');return false">Returns Policy</a></li>
+        <li><a href="#" onclick="openModal('faq');return false">FAQs</a></li>
+        <li><a href="#" onclick="document.getElementById('newsletter').scrollIntoView({behavior:'smooth'});return false">Contact Us</a></li>
+        <li><a href="#" onclick="openModal('custom');return false">Custom Orders</a></li>
+      </ul>
+    </div>
+    </div>
+  <div class="footer-bottom">
+    <span>© 2026 Upper Crust. All rights reserved.</span>
+    <div>
+      <a href="#" onclick="openModal('privacy');return false">Privacy Policy</a>
+      <a href="#" onclick="openModal('terms');return false">Terms of Service</a>
+      <a href="#" onclick="openModal('sitemap');return false">Sitemap</a>
+    </div>
+  </div>
+</footer>
+
+<!-- MODALS -->
+<div id="m-faq"     class="uc-modal"><div class="box" id="m-faq-box"></div></div>
+<div id="m-custom"  class="uc-modal"><div class="box" id="m-custom-box"></div></div>
+<div id="m-privacy" class="uc-modal wide"><div class="box" id="m-privacy-box"></div></div>
+<div id="m-terms"   class="uc-modal wide"><div class="box" id="m-terms-box"></div></div>
+<div id="m-returns" class="uc-modal"><div class="box" id="m-returns-box"></div></div>
+<div id="m-blog"    class="uc-modal"><div class="box" id="m-blog-box"></div></div>
+<div id="m-careers" class="uc-modal"><div class="box" id="m-careers-box"></div></div>
+<div id="m-sitemap" class="uc-modal"><div class="box" id="m-sitemap-box"></div></div>
+<div id="m-mock"    class="uc-modal wide"><div class="box" id="m-mock-box"></div></div>
+
+<div id="modal-overlay" onclick="closeModal()"></div>
+<div id="m-auth"     class="uc-modal"><div class="box" id="m-auth-box"></div></div>
+<div id="m-checkout" class="uc-modal wide"><div class="box" id="m-checkout-box"></div></div>
+<div id="m-confirm"  class="uc-modal"><div class="box" id="m-confirm-box"></div></div>
+<div id="m-account"  class="uc-modal wide"><div class="box" id="m-account-box"></div></div>
+<div id="m-orders"   class="uc-modal"><div class="box" id="m-orders-box"></div></div>
+<div id="m-admin"    class="uc-modal xl"><div class="box" id="m-admin-box"></div></div>
+<div id="m-products" class="uc-modal xl"><div class="box" id="m-products-box"></div></div>
+<div id="m-pform"    class="uc-modal wide"><div class="box" id="m-pform-box"></div></div>
+
+<!-- ══ JAVASCRIPT ══════════════════════════════════════════ -->
+<script>
+// ─── COMPAT ALIASES (keep at top — HTML calls these directly) ───────────────
+function closeMobileNav(){
+  var n=document.getElementById('mobile-nav');
+  if(n) n.classList.remove('open');
+  document.body.style.overflow='';
+}
+function showModal(name,data){ openModal(name,data); }
+function showToast(msg){ toast(msg); }
+function filterProducts(cat){ renderGrid(cat); }
+function renderProducts(cat){ renderGrid(cat); }
+
+// ─── CONFIG — EDIT BEFORE DEPLOYING ─────────────────────────────────────────
+var CFG = {
+  SUPABASE_URL:        'https://pqulqlwvgasqrgxyjcpv.supabase.co',
+  SUPABASE_ANON_KEY:   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBxdWxxbHd2Z2FzcXJneHlqY3B2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI4OTE2MTcsImV4cCI6MjA4ODQ2NzYxN30.5Wz9jpBV1do45ea3GbNqkIKWEnSDShNo3sOPCROSi0c',
+  USE_SUPABASE:        true,
+  UPI_ID:              'uppercrust@upi',
+  UPI_NAME:            'Upper Crust Bakery',
+  FREE_DELIVERY_ABOVE: 500,
+  DELIVERY_FEE:        49,
+  RAZORPAY_KEY_ID:     'rzp_test_YOUR_KEY',   // replace with your key from razorpay.com/app/keys
+  APP_VERSION:         '5.0'
+};
+
+// ─── PRODUCT IMAGES (Unsplash CDN — replace with own CDN post-launch) ────────
+var IMG = {
+  hero:   'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=520&h=520&fit=crop&crop=center',
+  p1:     'https://images.unsplash.com/photo-1549931319-a545dcf3bc73?w=400&h=300&fit=crop',
+  p2:     'https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=400&h=300&fit=crop',
+  p3:     'https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=400&h=300&fit=crop',
+  p4:     'https://images.unsplash.com/photo-1592618420897-e30c78c6ea73?w=400&h=300&fit=crop',
+  p5:     'https://images.unsplash.com/photo-1499636136210-6f4ee915583e?w=400&h=300&fit=crop',
+  p6:     'https://images.unsplash.com/photo-1488477304112-4944851de03d?w=400&h=300&fit=crop',
+  p7:     'https://images.unsplash.com/photo-1565958011703-44f9829ba187?w=400&h=300&fit=crop',
+  p8:     'https://images.unsplash.com/photo-1513519245088-0e12902e35ca?w=400&h=300&fit=crop',
+  story1: 'https://images.unsplash.com/photo-1573497491765-dccce02b29df?w=400&h=400&fit=crop',
+  story2: 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&h=400&fit=crop',
+  story3: 'https://images.unsplash.com/photo-1563729784474-d77dbb933a9e?w=400&h=400&fit=crop',
+  story4: 'https://images.unsplash.com/photo-1534432182912-63863115e106?w=400&h=400&fit=crop'
+};
+
+// ─── DEFAULT PRODUCT CATALOGUE ───────────────────────────────────────────────
+var CATALOG = [
+  {id:'1',name:'Classic Sourdough',   cat:'bread',  price:220,emoji:'🍞',tag:'Bread',   tagClass:'',    desc:'Long-fermented wild yeast sourdough with a golden crust and open crumb.',        inStock:true, sortOrder:1,img:IMG.p1},
+  {id:'2',name:'Butter Croissant',    cat:'pastry', price:80, emoji:'🥐',tag:'Pastry',  tagClass:'',    desc:'Laminated dough, 27 layers, pure French butter. A morning ritual.',              inStock:true, sortOrder:2,img:IMG.p2},
+  {id:'3',name:'Dark Choc Fudge Cake',cat:'cake',   price:650,emoji:'🎂',tag:'Cake',    tagClass:'',    desc:'Three layers of rich chocolate sponge, ganache and cocoa dust.',                 inStock:true, sortOrder:3,img:IMG.p3},
+  {id:'4',name:'Multigrain Loaf',     cat:'bread',  price:180,emoji:'🍞',tag:'Bread',   tagClass:'',    desc:'Sunflower seeds, flaxseed, oats — hearty and wholesome.',                       inStock:true, sortOrder:4,img:IMG.p4},
+  {id:'5',name:'Almond Cantucci',     cat:'cookie', price:120,emoji:'🍪',tag:'Cookie',  tagClass:'',    desc:'Twice-baked Tuscan biscotti with whole Californian almonds.',                   inStock:true, sortOrder:5,img:IMG.p5},
+  {id:'6',name:'Mango Cream Cake',    cat:'cake',   price:780,emoji:'🍰',tag:'Seasonal',tagClass:'sage',desc:'Fresh Alphonso mango compote layered with mascarpone cream.',                   inStock:true, sortOrder:6,img:IMG.p6},
+  {id:'7',name:'Cinnamon Roll',       cat:'pastry', price:90, emoji:'🌀',tag:'Pastry',  tagClass:'',    desc:'Soft brioche dough swirled with Ceylon cinnamon and brown sugar.',               inStock:false,sortOrder:7,img:IMG.p7},
+  {id:'8',name:'Gift Box - 12 pcs',   cat:'gift',   price:499,emoji:'🎁',tag:'Gift Box',tagClass:'',    desc:'12 assorted macarons in a hand-tied ribbon box. Perfect for gifting.',           inStock:true, sortOrder:8,img:IMG.p8}
+];
+
+// ─── ORDER STATUS CONFIG ─────────────────────────────────────────────────────
+var STATUS = {
+  label:{'pending_verification':'Pending Payment','confirmed':'Confirmed','preparing':'Preparing',
+         'out_for_delivery':'Out for Delivery','delivered':'Delivered','cancelled':'Cancelled'},
+  icon: {'pending_verification':'⏳','confirmed':'✅','preparing':'👨‍🍳',
+         'out_for_delivery':'🚚','delivered':'🎉','cancelled':'❌'},
+  color:{'pending_verification':'#f59e0b','confirmed':'#10b981','preparing':'#3b82f6',
+         'out_for_delivery':'#8b5cf6','delivered':'#059669','cancelled':'#ef4444'},
+  next: {'pending_verification':['confirmed','cancelled'],'confirmed':['preparing','cancelled'],
+         'preparing':['out_for_delivery','cancelled'],'out_for_delivery':['delivered'],
+         'delivered':[],'cancelled':[]}
+};
+function sLabel(s){ return (STATUS.icon[s]||'') + ' ' + (STATUS.label[s]||s); }
+function sBadge(s){ var c=STATUS.color[s]||'#888'; return '<span class="sbadge" style="background:'+c+'1a;color:'+c+'">'+x(sLabel(s))+'</span>'; }
+
+// ─── LOCALSTORAGE HELPERS ────────────────────────────────────────────────────
+var LS = {
+  get:function(k){ try{return JSON.parse(localStorage.getItem('uc_'+k)||'null');}catch(e){return null;} },
+  set:function(k,v){ try{localStorage.setItem('uc_'+k,JSON.stringify(v));}catch(e){} },
+  del:function(k){ localStorage.removeItem('uc_'+k); }
+};
+
+// ─── SUPABASE CLIENT ─────────────────────────────────────────────────────────
+var SB = null;
+
+// ─── DATABASE LAYER ──────────────────────────────────────────────────────────
+// All UI code calls these — they switch between Supabase and localStorage.
+// localStorage is always written as fallback/cache.
+
+// Products
+async function dbProducts(){
+  if(CFG.USE_SUPABASE && SB){
+    try{
+      var r=await SB.from('uc_products').select('*').order('sort_order');
+      if(!r.error && r.data){
+        if(r.data.length) return r.data.map(sbProd);
+        // Empty table on first run — seed with CATALOG
+        for(var i=0;i<CATALOG.length;i++){
+          var p=CATALOG[i];
+          await SB.from('uc_products').upsert({
+            id:p.id,name:p.name,cat:p.cat,description:p.desc,price:p.price,
+            tag:p.tag,tag_class:p.tagClass||'',emoji:p.emoji||'🍞',img:p.img||'',
+            in_stock:p.inStock,sort_order:p.sortOrder||i+1,
+            created_at:Date.now(),updated_at:Date.now()
+          });
+        }
+        return CATALOG.slice();
+      }
+      console.warn('[UC] dbProducts:',r.error&&r.error.message);
+    }catch(e){ console.warn('[UC] dbProducts:',e.message); }
+  }
+  var s=LS.get('products');
+  if(!s||!Object.keys(s).length){
+    s={};
+    CATALOG.forEach(function(p){ s[p.id]=Object.assign({},p,{createdAt:Date.now(),updatedAt:Date.now()}); });
+    LS.set('products',s);
+  }
+  return Object.values(s).sort(function(a,b){return(a.sortOrder||99)-(b.sortOrder||99);});
+}
+async function dbSaveProduct(p){
+  var now=Date.now();
+  if(CFG.USE_SUPABASE && SB){
+    var row={id:p.id,name:p.name,cat:p.cat,description:p.desc,price:p.price,tag:p.tag,
+             tag_class:p.tagClass||'',emoji:p.emoji||'🍞',img:p.img||'',
+             in_stock:p.inStock,sort_order:p.sortOrder||99,
+             created_at:p.createdAt||now,updated_at:now};
+    var r=await SB.from('uc_products').upsert(row);
+    if(r.error) console.error('[UC] dbSaveProduct:',r.error.message);
+  }
+  var s=LS.get('products')||{};
+  s[p.id]=Object.assign(s[p.id]||{},p,{updatedAt:now});
+  LS.set('products',s);
+}
+async function dbDeleteProduct(id){
+  if(CFG.USE_SUPABASE && SB){
+    var r=await SB.from('uc_products').delete().eq('id',String(id));
+    if(r.error) console.error('[UC] dbDeleteProduct:',r.error.message);
+  }
+  var s=LS.get('products')||{};
+  delete s[String(id)];
+  LS.set('products',s);
+}
+async function dbToggleStock(id,v){
+  if(CFG.USE_SUPABASE && SB){
+    var r=await SB.from('uc_products').update({in_stock:v,updated_at:Date.now()}).eq('id',String(id));
+    if(r.error) console.error('[UC] dbToggleStock:',r.error.message);
+  }
+  var s=LS.get('products')||{};
+  if(s[String(id)]) s[String(id)].inStock=v;
+  LS.set('products',s);
+}
+function sbProd(r){
+  return{id:r.id,name:r.name,cat:r.cat,desc:r.description,price:r.price,tag:r.tag,
+         tagClass:r.tag_class||'',emoji:r.emoji||'🍞',img:r.img,
+         inStock:r.in_stock,sortOrder:r.sort_order,
+         createdAt:r.created_at,updatedAt:r.updated_at};
+}
+
+// Users
+async function dbUserByEmail(email){
+  if(CFG.USE_SUPABASE && SB){
+    try{
+      var r=await SB.from('uc_users').select('*').eq('email',email.toLowerCase()).maybeSingle();
+      if(r.error) console.error('[UC] dbUserByEmail:',r.error.message);
+      return r.data ? sbUser(r.data) : null;
+    }catch(e){ console.warn('[UC] dbUserByEmail:',e.message); }
+  }
+  return Object.values(LS.get('users')||{}).find(function(u){return u.email===email.toLowerCase();})||null;
+}
+async function dbAnyAdmin(){
+  // FIX: check by role, not count — avoids race condition on first signup
+  if(CFG.USE_SUPABASE && SB){
+    try{
+      var r=await SB.from('uc_users').select('id').eq('role','admin').limit(1);
+      if(!r.error) return !!(r.data && r.data.length);
+    }catch(e){ console.warn('[UC] dbAnyAdmin:',e.message); }
+  }
+  return Object.values(LS.get('users')||{}).some(function(u){return u.role==='admin';});
+}
+async function dbSaveUser(uid,data){
+  var now=Date.now();
+  if(CFG.USE_SUPABASE && SB){
+    var row={id:uid,name:data.name,email:(data.email||'').toLowerCase(),
+             pass_hash:data.passHash||data.pass_hash,
+             role:data.role||'customer',phone:data.phone||'',
+             address:data.savedAddress||data.address||{},
+             created_at:data.createdAt||now};
+    var r=await SB.from('uc_users').upsert(row);
+    if(r.error) console.error('[UC] dbSaveUser:',r.error.message);
+  }
+  var s=LS.get('users')||{};
+  s[uid]=Object.assign(s[uid]||{},data,{uid:uid,updatedAt:now});
+  LS.set('users',s);
+  return s[uid];
+}
+function sbUser(r){
+  return{uid:r.id,name:r.name,email:r.email,passHash:r.pass_hash,role:r.role,
+         phone:r.phone||'',savedAddress:r.address||{},createdAt:r.created_at};
+}
+
+// Orders
+async function dbCreateOrder(o){
+  var now=Date.now();
+  if(CFG.USE_SUPABASE && SB){
+    var row={id:o.orderId,user_id:o.userId,customer_name:o.customerName,
+             customer_email:o.customerEmail,items:o.items,
+             address:o.deliveryAddress,phone:o.contactPhone,
+             payment_method:o.paymentMethod,payment_status:o.paymentStatus,
+             total:o.totalAmount,delivery_charge:o.deliveryCharge,
+             status:o.status,created_at:now,updated_at:now};
+    var r=await SB.from('uc_orders').insert(row);
+    if(r.error) console.error('[UC] dbCreateOrder:',r.error.message);
+  }
+  var s=LS.get('orders')||{};
+  s[o.orderId]=Object.assign({},o,{createdAt:now,updatedAt:now});
+  LS.set('orders',s);
+  return s[o.orderId];
+}
+async function dbUpdateStatus(oid,status){
+  var now=Date.now();
+  var ps=(status==='confirmed'||status==='delivered')?'paid':undefined;
+  if(CFG.USE_SUPABASE && SB){
+    var upd={status:status,updated_at:now};
+    if(ps) upd.payment_status=ps;
+    var r=await SB.from('uc_orders').update(upd).eq('id',oid);
+    if(r.error) console.error('[UC] dbUpdateStatus:',r.error.message);
+  }
+  var s=LS.get('orders')||{};
+  if(s[oid]){ s[oid].status=status; s[oid].updatedAt=now; if(ps) s[oid].paymentStatus=ps; }
+  LS.set('orders',s);
+}
+async function dbAllOrders(){
+  if(CFG.USE_SUPABASE && SB){
+    var r=await SB.from('uc_orders').select('*').order('created_at',{ascending:false});
+    if(r.error){ console.error('[UC] dbAllOrders:',r.error.message); return []; }
+    return r.data.map(sbOrder);
+  }
+  return Object.values(LS.get('orders')||{}).sort(function(a,b){return b.createdAt-a.createdAt;});
+}
+async function dbUserOrders(uid){
+  if(CFG.USE_SUPABASE && SB){
+    var r=await SB.from('uc_orders').select('*').eq('user_id',uid).order('created_at',{ascending:false});
+    if(r.error){ console.error('[UC] dbUserOrders:',r.error.message); return []; }
+    return r.data.map(sbOrder);
+  }
+  return Object.values(LS.get('orders')||{})
+    .filter(function(o){return o.userId===uid;})
+    .sort(function(a,b){return b.createdAt-a.createdAt;});
+}
+function sbOrder(r){
+  return{orderId:r.id,userId:r.user_id,customerName:r.customer_name,
+         customerEmail:r.customer_email,items:r.items,
+         deliveryAddress:r.address,contactPhone:r.phone,
+         paymentMethod:r.payment_method,paymentStatus:r.payment_status,
+         totalAmount:r.total,deliveryCharge:r.delivery_charge,
+         status:r.status,createdAt:r.created_at,updatedAt:r.updated_at};
+}
+
+// ─── AUTH ────────────────────────────────────────────────────────────────────
+var Auth = {
+  user: null,
+
+  async init(){
+    var s=LS.get('sess');
+    if(s){
+      // FIX: check session expiry (7-day TTL)
+      if(s._exp && Date.now() > s._exp){ LS.del('sess'); s=null; }
+      else Auth.user=s;
+    }
+    var c=LS.get('cart'); if(c) cart=c;
+    Auth._ui();
+  },
+
+  async signup(name,email,pass){
+    // FIX: rate limit — max 3 attempts per 10 minutes per browser session
+    var _rl=LS.get('_rl_su')||{c:0,t:0};
+    if(Date.now()-_rl.t<600000 && _rl.c>=3)
+      return{error:'Too many sign-up attempts. Please wait 10 minutes.'};
+    if(Date.now()-_rl.t>=600000) _rl={c:0,t:Date.now()};
+    _rl.c++; LS.set('_rl_su',_rl);
+
+    var em=email.trim().toLowerCase();
+    var ex=await dbUserByEmail(em);
+    if(ex) return{error:'Email already registered. Please log in.'};
+
+    // FIX: use dbAnyAdmin (role-based) not dbUserCount (race condition)
+    var hasAdmin=await dbAnyAdmin();
+    var uid='u'+Date.now()+Math.random().toString(36).slice(2,5);
+    var u=await dbSaveUser(uid,{
+      uid,name:name.trim(),email:em,
+      passHash: await Auth._hash(pass),
+      role: hasAdmin ? 'customer' : 'admin',
+      phone:'',savedAddress:{line1:'',city:'',state:'',pincode:''},
+      createdAt:Date.now()
+    });
+    Auth.user=u;
+    // FIX: strip passHash from session before storing in localStorage
+    LS.set('sess',Auth._safeUser(u));
+    Auth._ui();
+    return{user:u};
+  },
+
+  async login(email,pass){
+    var em=email.trim().toLowerCase();
+    var u=await dbUserByEmail(em);
+    if(!u) return{error:'No account found with this email.'};
+    // FIX: async SHA-256 hash comparison
+    if(u.passHash !== await Auth._hash(pass)) return{error:'Incorrect password.'};
+    Auth.user=u;
+    LS.set('sess',Auth._safeUser(u));
+    Auth._ui();
+    return{user:u};
+  },
+
+  async logout(){
+    Auth.user=null; LS.del('sess');
+    cart=[]; LS.del('cart'); wishlist=new Set();
+    updateCartUI(); Auth._ui();
+    toast('Logged out. See you soon! 👋');
+    closeModal();
+  },
+
+  async updateProfile(data){
+    if(!Auth.user) return;
+    var u=await dbSaveUser(Auth.user.uid,Object.assign({},Auth.user,data));
+    Auth.user=Object.assign(Auth.user,u);
+    LS.set('sess',Auth._safeUser(Auth.user));
+    Auth._ui();
+    return u;
+  },
+
+  // FIX: SHA-256 via SubtleCrypto — replaces insecure djb2 hash
+  _hash: async function(s){
+    var buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s));
+    return Array.from(new Uint8Array(buf))
+      .map(function(b){return b.toString(16).padStart(2,'0');}).join('');
+  },
+
+  // FIX: strip passHash + add expiry before storing session
+  _safeUser: function(u){
+    if(!u) return u;
+    var safe=Object.assign({},u);
+    delete safe.passHash;
+    safe._exp=Date.now()+604800000; // 7 days
+    return safe;
+  },
+
+  _ui: function(){
+    var u=Auth.user, li=!!u, isAdmin=li&&u.role==='admin';
+    var btn=document.getElementById('nav-auth-btn');
+    if(btn){
+      btn.textContent=li ? u.name.split(' ')[0] : '👤';
+      btn.title=li ? 'Hi, '+u.name : 'Login / Sign up';
+      btn.onclick=li ? function(){openModal('account');} : function(){openModal('login');};
+    }
+    var ab=document.getElementById('nav-admin-btn');
+    if(ab) ab.style.display=isAdmin ? 'inline-flex' : 'none';
+    var ml=document.getElementById('mob-login-link');
+    if(ml) ml.textContent=li ? '👤 My Account' : '👤 Login';
+    var ma=document.getElementById('mob-admin-link');
+    if(ma) ma.style.display=isAdmin ? 'block' : 'none';
+  }
+};
+
+// ─── MODAL SYSTEM ────────────────────────────────────────────────────────────
+var _mpending=null;
+function openModal(name,data){
+  _mpending=data||null;
+  document.querySelectorAll('.uc-modal').forEach(function(m){m.classList.remove('show');});
+  document.getElementById('modal-overlay').classList.remove('show');
+  document.body.style.overflow='';
+  closeCart();
+  if(!name) return;
+  var el=document.getElementById('m-'+name);
+  if(!el) return;
+  el.classList.add('show');
+  document.getElementById('modal-overlay').classList.add('show');
+  document.body.style.overflow='hidden';
+  var renders={
+    login:    function(){uiAuth('login');},
+    signup:   function(){uiAuth('signup');},
+    checkout: uiCheckout,
+    confirm:  function(){uiConfirm(_mpending);},
+    account:  uiAccount,
+    orders:   uiOrders,
+    admin:    uiAdmin,
+    products: uiProducts,
+    pform:    function(){uiPform(_mpending);},
+    faq:      function(){uiInfoPage('faq');},
+    custom:   function(){uiInfoPage('custom');},
+    privacy:  function(){uiInfoPage('privacy');},
+    terms:    function(){uiInfoPage('terms');},
+    returns:  function(){uiInfoPage('returns');},
+    blog:     function(){uiInfoPage('blog');},
+    careers:  function(){uiInfoPage('careers');},
+    sitemap:  function(){uiInfoPage('sitemap');},
+    mock:     function(){}
+  };
+  if(renders[name]) renders[name]();
+}
+function closeModal(){
+  document.querySelectorAll('.uc-modal').forEach(function(m){m.classList.remove('show');});
+  document.getElementById('modal-overlay').classList.remove('show');
+  document.body.style.overflow='';
+}
+function openCheckout(){
+  closeCart();
+  // FIX: guard before opening checkout
+  if(!Auth.user){window._redir='checkout';openModal('login');return;}
+  openModal('checkout');
+}
+
+// ─── HTML HELPERS ────────────────────────────────────────────────────────────
+// x() is the XSS sanitizer — wrap ALL user-controlled strings before innerHTML
+function x(s){
+  return String(s||'')
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;')
+    .replace(/'/g,'&#39;');
+}
+function paint(id,html){ var el=document.getElementById(id); if(el) el.innerHTML=html; }
+function mHead(title,backName,backLabel){
+  var b=backName
+    ? '<button class="mback" onclick="openModal(\''+backName+'\')">'+x(backLabel||'Back')+'</button>'
+    : '';
+  return '<div class="mhdr">'+b+'<h2>'+x(title)+'</h2><button class="mclose" onclick="closeModal()">&#10005;</button></div>';
+}
+
+// ─── AUTH UI ─────────────────────────────────────────────────────────────────
+function uiAuth(mode){
+  var isL=mode==='login';
+  paint('m-auth-box',
+    mHead(isL?'👋 Welcome Back':'🎉 Create Account')+
+    '<div class="mbody">'+
+    '<p style="font-size:14px;color:var(--muted);margin-bottom:18px">'+
+      (isL?'Log in to order and track your deliveries.':'Sign up for faster checkout and order history.')+
+    '</p>'+
+    '<div id="aerr" class="ferr"></div>'+
+    (isL?'':'<div class="fg"><label>Full Name</label><input id="an" type="text" placeholder="Priya Sharma" autocomplete="name"/></div>')+
+    '<div class="fg"><label>Email</label><input id="ae" type="email" placeholder="you@example.com" autocomplete="email"/></div>'+
+    '<div class="fg"><label>Password</label>'+
+      '<div class="pw-wrap">'+
+        '<input id="ap" type="password" placeholder="'+(isL?'Your password':'Min 8 characters')+'" autocomplete="'+(isL?'current-password':'new-password')+'"/>'+
+        '<button class="pw-eye" type="button" onclick="var i=document.getElementById(\'ap\');i.type=i.type===\'password\'?\'text\':\'password\'">&#128065;</button>'+
+      '</div>'+
+    '</div>'+
+    '<button class="btn-p btn-full" onclick="doAuth(\''+mode+'\')">'+x(isL?'Log In →':'Create Account →')+'</button>'+
+    '<div class="auth-or"><span>or</span></div>'+
+    '<p class="auth-sw">'+(isL?
+      'New here? <a href="#" onclick="uiAuth(\'signup\');return false">Create account</a>':
+      'Have an account? <a href="#" onclick="uiAuth(\'login\');return false">Log in</a>')+
+    '</p></div>'
+  );
+}
+async function doAuth(mode){
+  var email=(document.getElementById('ae').value||'').trim();
+  var pass=document.getElementById('ap').value||'';
+  var err=document.getElementById('aerr');
+  function bad(m){err.textContent=m;err.style.display='block';}
+  // FIX: proper email regex + min 8 char password
+  if(!email||!pass) return bad('Please fill in all fields.');
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return bad('Enter a valid email address.');
+  if(pass.length<8) return bad('Password must be at least 8 characters.');
+  var res;
+  if(mode==='login'){
+    res=await Auth.login(email,pass);
+  } else {
+    var name=(document.getElementById('an').value||'').trim();
+    if(!name) return bad('Please enter your name.');
+    res=await Auth.signup(name,email,pass);
+  }
+  if(res.error) return bad(res.error);
+  var msg=(mode==='signup'?'Welcome, ':'Welcome back, ')+res.user.name.split(' ')[0]+'!';
+  if(res.user.role==='admin') msg+=' Admin access granted. 🛠';
+  toast(msg);
+  err.style.display='none';
+  if(window._redir){var r=window._redir;window._redir=null;openModal(r);}
+  else closeModal();
+}
+
+// ─── CHECKOUT UI ─────────────────────────────────────────────────────────────
+async function uiCheckout(){
+  if(!cart.length){ toast('Your cart is empty!'); closeModal(); return; }
+  // FIX: null-check Auth.user before accessing savedAddress
+  if(!Auth.user){ toast('Please log in to checkout 👤'); openModal('login'); return; }
+  var u=Auth.user, addr=u.savedAddress||{};
+  var sub=cart.reduce(function(s,i){return s+i.price*i.qty;},0);
+  var del=sub>=CFG.FREE_DELIVERY_ABOVE?0:CFG.DELIVERY_FEE, total=sub+del;
+  // FIX: x() on img src — was broken string quote in previous version
+  var items=cart.map(function(i){
+    return '<div class="co-item">'+
+      '<img src="'+x(i.img||'')+'" alt="'+x(i.name)+'" class="co-thumb" onerror="this.style.opacity=0.2"/>'+
+      '<div style="flex:1"><div class="co-iname">'+x(i.name)+'</div><div class="co-iqty">x '+i.qty+'</div></div>'+
+      '<span class="co-iprice">Rs '+(i.price*i.qty)+'</span>'+
+    '</div>';
+  }).join('');
+  paint('m-checkout-box',
+    '<div class="mhdr">'+
+      '<button class="mback" onclick="closeModal();openCart()">&#8592; Cart</button>'+
+      '<h2>Checkout</h2>'+
+      '<button class="mclose" onclick="closeModal()">&#10005;</button>'+
+    '</div>'+
+    '<div class="mbody"><div class="co-grid">'+
+    // Left: address + payment
+    '<div>'+
+      '<h3 class="slabel">&#128230; Delivery Address</h3>'+
+      '<div id="cerr" class="ferr"></div>'+
+      '<div class="fg"><label>Street Address *</label>'+
+        '<input id="cl1" type="text" value="'+x(addr.line1||'')+'" placeholder="House / Flat, Street" autocomplete="street-address"/>'+
+      '</div>'+
+      '<div class="frow">'+
+        '<div class="fg"><label>City *</label>'+
+          '<input id="ccy" type="text" value="'+x(addr.city||'')+'" placeholder="Bangalore" autocomplete="address-level2"/>'+
+        '</div>'+
+        '<div class="fg"><label>State</label>'+
+          '<input id="cst" type="text" value="'+x(addr.state||'')+'" placeholder="Karnataka" autocomplete="address-level1"/>'+
+        '</div>'+
+      '</div>'+
+      '<div class="frow">'+
+        '<div class="fg"><label>Pincode *</label>'+
+          '<input id="cpin" type="text" value="'+x(addr.pincode||'')+'" placeholder="560001" maxlength="6" autocomplete="postal-code"/>'+
+        '</div>'+
+        '<div class="fg"><label>Phone *</label>'+
+          '<input id="cph" type="tel" value="'+x(u.phone||'')+'" placeholder="9876543210" maxlength="10" autocomplete="tel"/>'+
+        '</div>'+
+      '</div>'+
+      '<label class="chk-row"><input type="checkbox" id="csave" checked/> Save address to profile</label>'+
+      '<h3 class="slabel" style="margin-top:20px">&#128179; Payment Method</h3>'+
+      '<div class="pay-opts">'+
+        '<label class="pay-opt">'+
+          '<input type="radio" name="pm" value="razorpay" checked onchange="toggleQR()"/>'+
+          '<div class="pay-body"><span class="pay-icon">&#128179;</span>'+
+            '<div><strong>Pay Online</strong><small>Card / UPI / Net Banking via Razorpay</small></div>'+
+          '</div>'+
+        '</label>'+
+        '<label class="pay-opt">'+
+          '<input type="radio" name="pm" value="gpay" onchange="toggleQR()"/>'+
+          '<div class="pay-body"><span class="pay-icon">&#128241;</span>'+
+            '<div><strong>GPay / UPI QR</strong><small>Scan and pay, then confirm below</small></div>'+
+          '</div>'+
+        '</label>'+
+      '</div>'+
+      '<div id="qrp" style="display:none;text-align:center;padding:16px;background:var(--beige);border-radius:12px;margin-top:10px">'+
+        '<p style="font-weight:700;margin-bottom:8px">Scan with any UPI app</p>'+
+        '<div class="qr-box">&#128241;</div>'+
+        '<p style="font-size:13px;color:var(--muted)">UPI ID: <strong>'+x(CFG.UPI_ID)+'</strong></p>'+
+        '<p style="font-size:13px;font-weight:700;color:var(--espresso)">Amount: Rs <span id="qramt">'+total+'</span></p>'+
+        '<p style="font-size:11px;color:var(--muted);margin-top:4px">After paying in GPay, tap Place Order below</p>'+
+      '</div>'+
+    '</div>'+
+    // Right: order summary
+    '<div>'+
+      '<h3 class="slabel">&#129330; Order Summary</h3>'+
+      '<div>'+items+'</div>'+
+      '<div class="totals">'+
+        '<div class="trow"><span>Subtotal</span><span>Rs '+sub+'</span></div>'+
+        '<div class="trow"><span>Delivery</span><span>'+(del===0?'<span style="color:#16a34a;font-weight:700">FREE</span>':'Rs '+del)+'</span></div>'+
+        (del>0?'<div class="free-del-tip">Add Rs '+(CFG.FREE_DELIVERY_ABOVE-sub)+' more for free delivery &#127873;</div>':'')+
+        '<div class="trow grand"><span>Total</span><strong>Rs '+total+'</strong></div>'+
+      '</div>'+
+      '<button class="btn-p btn-full" style="margin-top:14px" onclick="doOrder()">Place Order &#8594;</button>'+
+      '<p class="co-note">&#128274; Secure checkout &bull; Orders confirmed within 30 min</p>'+
+    '</div>'+
+    '</div></div>'
+  );
+}
+function toggleQR(){
+  var v=document.querySelector('input[name="pm"]:checked');
+  if(v) document.getElementById('qrp').style.display=v.value==='gpay'?'block':'none';
+}
+
+// ─── PLACE ORDER ─────────────────────────────────────────────────────────────
+async function doOrder(){
+  // FIX: guard — user must be logged in
+  if(!Auth.user){ toast('Session expired. Please log in again.'); openModal('login'); return; }
+  var l1   =(document.getElementById('cl1').value||'').trim();
+  var city =(document.getElementById('ccy').value||'').trim();
+  var state=(document.getElementById('cst').value||'').trim();
+  var pin  =(document.getElementById('cpin').value||'').trim();
+  var ph   =(document.getElementById('cph').value||'').trim();
+  var meth =document.querySelector('input[name="pm"]:checked').value;
+  var save =document.getElementById('csave').checked;
+  var err  =document.getElementById('cerr');
+  function bad(m){
+    err.textContent=m; err.style.display='block';
+    err.scrollIntoView({behavior:'smooth',block:'nearest'});
+  }
+  if(!l1)               return bad('Please enter street address.');
+  if(!city)             return bad('Please enter city.');
+  if(!pin||pin.length!==6) return bad('Please enter a 6-digit pincode.');
+  if(!ph||ph.replace(/\D/g,'').length<10) return bad('Please enter a valid 10-digit phone number.');
+  if(save) await Auth.updateProfile({phone:ph,savedAddress:{line1:l1,city,state,pincode:pin}});
+  var sub=cart.reduce(function(s,i){return s+i.price*i.qty;},0);
+  var del=sub>=CFG.FREE_DELIVERY_ABOVE?0:CFG.DELIVERY_FEE;
+  var oid='ORD-'+Date.now().toString(36).toUpperCase().slice(-6);
+  var order={
+    orderId:oid,
+    userId:Auth.user.uid,
+    customerName:Auth.user.name,
+    customerEmail:Auth.user.email,
+    items:cart.map(function(i){return{productId:i.id,name:i.name,quantity:i.qty,unitPrice:i.price};}),
+    deliveryAddress:{line1:l1,city,state,pincode:pin},
+    contactPhone:ph,
+    paymentMethod:meth,
+    paymentStatus:meth==='gpay'?'pending_verification':'pending',
+    totalAmount:sub+del,
+    deliveryCharge:del,
+    status:meth==='gpay'?'pending_verification':'confirmed'
+  };
+  if(meth==='razorpay'){
+    openRazorpay(sub+del, oid, async function(rzpOrderId,paymentId){
+      order.paymentStatus='paid';
+      order.paymentId=paymentId||('mock_'+Date.now());
+      var saved=await dbCreateOrder(order);
+      cart=[]; LS.del('cart'); updateCartUI();
+      openModal('confirm',saved);
+    });
+    return;
+  }
+  // GPay — save order as pending_verification
+  var saved=await dbCreateOrder(order);
+  cart=[]; LS.del('cart'); updateCartUI();
+  openModal('confirm',saved);
+}
+
+// ─── RAZORPAY INTEGRATION ────────────────────────────────────────────────────
+function openRazorpay(amount, orderId, onSuccess){
+  // Use mock gateway if key is still placeholder
+  if(!CFG.RAZORPAY_KEY_ID || CFG.RAZORPAY_KEY_ID==='rzp_test_YOUR_KEY'){
+    uiMockPay(amount, orderId, onSuccess);
+    return;
+  }
+  // Load Razorpay SDK dynamically (only when needed)
+  function launch(){
+    var options={
+      key:            CFG.RAZORPAY_KEY_ID,
+      amount:         amount*100, // paise
+      currency:       'INR',
+      name:           'Upper Crust Bakery',
+      description:    'Order '+orderId,
+      order_id:       orderId,
+      prefill:{
+        name:  Auth.user?Auth.user.name:'',
+        email: Auth.user?Auth.user.email:'',
+        contact:Auth.user?Auth.user.phone:''
+      },
+      theme:{ color:'#C2185B' },
+      handler:function(resp){
+        onSuccess(resp.razorpay_order_id, resp.razorpay_payment_id);
+      },
+      modal:{
+        ondismiss:function(){ toast('Payment cancelled. You can try again.'); }
+      }
+    };
+    new window.Razorpay(options).open();
+  }
+  if(window.Razorpay){ launch(); return; }
+  var s=document.createElement('script');
+  s.src='https://checkout.razorpay.com/v1/checkout.js';
+  s.onload=launch;
+  s.onerror=function(){ toast('Could not load payment gateway. Check your connection.'); };
+  document.head.appendChild(s);
+}
+
+// ─── MOCK PAYMENT GATEWAY ────────────────────────────────────────────────────
+function uiMockPay(amount, orderId, onSuccess){
+  openModal('mock');
+  paint('m-mock-box',
+    '<div class="mhdr">'+
+      '<h2>&#128179; Test Payment Gateway</h2>'+
+      '<button class="mclose" onclick="closeModal()">&#10005;</button>'+
+    '</div>'+
+    '<div class="mbody" style="text-align:center">'+
+    '<div style="background:var(--beige);border-radius:12px;padding:20px;margin-bottom:20px">'+
+      '<div style="font-size:13px;color:var(--muted);margin-bottom:6px">Order Amount</div>'+
+      '<div style="font-size:28px;font-weight:800;color:var(--espresso)">Rs '+amount+'</div>'+
+      '<div style="font-size:12px;color:var(--muted);margin-top:4px">Order ID: '+x(orderId)+'</div>'+
+    '</div>'+
+    '<p style="font-size:13px;color:var(--muted);margin-bottom:20px">'+
+      'This is the test payment sandbox.<br>Choose a scenario to simulate:'+
+    '</p>'+
+    '<div style="display:flex;flex-direction:column;gap:10px;max-width:360px;margin:0 auto">'+
+      '<button class="btn-p btn-full" id="mock-ok">&#9989; Simulate Success</button>'+
+      '<button class="btn-o btn-full" id="mock-fail">&#10060; Simulate Failure</button>'+
+      '<button class="btn-o btn-full" id="mock-pend">&#9203; Simulate Pending</button>'+
+    '</div>'+
+    '<p style="font-size:11px;color:var(--muted);margin-top:16px">'+
+      'Replace RAZORPAY_KEY_ID in CFG to use real Razorpay payments.'+
+    '</p></div>'
+  );
+  // Success scenario
+  document.getElementById('mock-ok').onclick=function(){
+    paint('m-mock-box',
+      '<div class="mhdr"><h2>&#128179; Processing...</h2></div>'+
+      '<div class="mbody" style="text-align:center;padding:40px 20px">'+
+        '<div style="font-size:48px;margin-bottom:12px">&#9203;</div>'+
+        '<p style="color:var(--muted)">Verifying payment...</p>'+
+      '</div>'
+    );
+    setTimeout(function(){
+      closeModal();
+      onSuccess(orderId,'mock_pay_'+Date.now());
+    },1800);
+  };
+  // Failure scenario
+  document.getElementById('mock-fail').onclick=function(){
+    closeModal();
+    toast('&#10060; Payment declined. Please try a different method.');
+  };
+  // Pending scenario
+  document.getElementById('mock-pend').onclick=async function(){
+    closeModal();
+    toast('&#9203; Payment pending — admin will verify manually.');
+    var order={
+      orderId:orderId,
+      userId:Auth.user?Auth.user.uid:'guest',
+      customerName:Auth.user?Auth.user.name:'Guest',
+      customerEmail:Auth.user?Auth.user.email:'',
+      items:cart.map(function(i){return{productId:i.id,name:i.name,quantity:i.qty,unitPrice:i.price};}),
+      deliveryAddress:{},contactPhone:'',
+      paymentMethod:'razorpay',paymentStatus:'pending_verification',
+      totalAmount:amount,deliveryCharge:0,
+      status:'pending_verification'
+    };
+    var saved=await dbCreateOrder(order);
+    cart=[]; LS.del('cart'); updateCartUI();
+    openModal('confirm',saved);
+  };
+}
+
+// ─── ORDER CONFIRMATION UI ────────────────────────────────────────────────────
+function uiConfirm(order){
+  if(!order) return;
+  var gpay=order.paymentMethod==='gpay';
+  var rows=order.items.map(function(i){
+    return '<tr>'+
+      '<td>'+x(i.name)+'</td>'+
+      '<td style="text-align:center">'+i.quantity+'</td>'+
+      '<td style="text-align:right">Rs '+(i.unitPrice*i.quantity)+'</td>'+
+    '</tr>';
+  }).join('');
+  paint('m-confirm-box',
+    '<div class="mhdr">'+
+      '<button class="mclose" style="margin-left:auto" onclick="closeModal()">&#10005;</button>'+
+    '</div>'+
+    '<div class="mbody" style="text-align:center;padding-top:4px">'+
+    '<div class="conf-icon">'+(gpay?'⏳':'🎉')+'</div>'+
+    '<h2 class="conf-title">'+(gpay?'Order Received!':'Order Confirmed!')+'</h2>'+
+    '<p style="font-size:14px;color:var(--muted);margin-bottom:18px">'+
+      (gpay?'We will confirm once your payment is verified.':'Your baked goods are being lovingly prepared!')+
+    '</p>'+
+    '<div class="conf-card">'+
+      '<div class="conf-row"><span>Order ID</span><strong>'+x(order.orderId)+'</strong></div>'+
+      '<div class="conf-row"><span>Status</span>'+sBadge(order.status)+'</div>'+
+      '<div class="conf-row"><span>Payment</span><strong>'+(gpay?'GPay — pending &#9203;':'Paid online &#9989;')+'</strong></div>'+
+      (order.deliveryAddress&&order.deliveryAddress.city?
+        '<div class="conf-row"><span>Deliver to</span><strong>'+x(order.deliveryAddress.line1||'')+', '+x(order.deliveryAddress.city)+'</strong></div>':'')+
+      '<div class="conf-row"><span>Total</span><strong>Rs '+order.totalAmount+'</strong></div>'+
+    '</div>'+
+    '<table class="conf-tbl"><thead><tr><th>Item</th><th>Qty</th><th>Price</th></tr></thead>'+
+    '<tbody>'+rows+'</tbody></table>'+
+    '<div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:20px">'+
+      '<button class="btn-o" onclick="openModal(\'orders\')">&#128203; My Orders</button>'+
+      '<button class="btn-p" onclick="closeModal()">Continue Shopping</button>'+
+    '</div></div>'
+  );
+}
+
+// ─── ACCOUNT UI ──────────────────────────────────────────────────────────────
+async function uiAccount(){
+  if(!Auth.user){ openModal('login'); return; }
+  var u=Auth.user, addr=u.savedAddress||{};
+  var _ords=await dbUserOrders(u.uid); var oc=_ords.length;
+  paint('m-account-box',
+    mHead('&#128100; My Account')+
+    '<div class="mbody">'+
+    '<div class="acct-top">'+
+      '<div class="acct-av">'+x(u.name.charAt(0).toUpperCase())+'</div>'+
+      '<div>'+
+        '<h3>'+x(u.name)+'</h3>'+
+        '<p>'+x(u.email)+'</p>'+
+        '<span class="rbadge '+(u.role==='admin'?'admin':'')+'">'+x(u.role==='admin'?'Admin':'Customer')+'</span>'+
+      '</div>'+
+    '</div>'+
+    '<div id="perr" class="ferr"></div><div id="pok" class="fok"></div>'+
+    '<h3 class="slabel">Personal Info</h3>'+
+    '<div class="frow">'+
+      '<div class="fg"><label>Full Name</label><input id="pn" type="text" value="'+x(u.name)+'" autocomplete="name"/></div>'+
+      '<div class="fg"><label>Phone</label><input id="pph" type="tel" value="'+x(u.phone||'')+'" autocomplete="tel"/></div>'+
+    '</div>'+
+    '<h3 class="slabel">Saved Address</h3>'+
+    '<div class="fg"><label>Street</label><input id="pl1" type="text" value="'+x(addr.line1||'')+'" placeholder="House / Flat, Street" autocomplete="street-address"/></div>'+
+    '<div class="frow">'+
+      '<div class="fg"><label>City</label><input id="pcy" type="text" value="'+x(addr.city||'')+'" autocomplete="address-level2"/></div>'+
+      '<div class="fg"><label>State</label><input id="pst" type="text" value="'+x(addr.state||'')+'" autocomplete="address-level1"/></div>'+
+      '<div class="fg"><label>Pincode</label><input id="ppin" type="text" value="'+x(addr.pincode||'')+'" maxlength="6" autocomplete="postal-code"/></div>'+
+    '</div>'+
+    '<div class="brow">'+
+      '<button class="btn-p" onclick="saveProfile()">Save Changes</button>'+
+      '<button class="btn-o" onclick="openModal(\'orders\')">&#128203; Orders ('+oc+')</button>'+
+      (u.role==='admin'?'<button class="btn-o" onclick="openModal(\'admin\')">&#128295; Admin</button>':'')+
+    '</div>'+
+    '<button class="btn-logout" onclick="Auth.logout()">Log Out</button>'+
+    '</div>'
+  );
+}
+async function saveProfile(){
+  var name=(document.getElementById('pn').value||'').trim();
+  var ph  =(document.getElementById('pph').value||'').trim();
+  var l1  =(document.getElementById('pl1').value||'').trim();
+  var city=(document.getElementById('pcy').value||'').trim();
+  var st  =(document.getElementById('pst').value||'').trim();
+  var pin =(document.getElementById('ppin').value||'').trim();
+  var err=document.getElementById('perr'), ok=document.getElementById('pok');
+  if(!name){err.textContent='Name is required';err.style.display='block';return;}
+  err.style.display='none';
+  await Auth.updateProfile({name,phone:ph,savedAddress:{line1:l1,city,state:st,pincode:pin}});
+  ok.textContent='&#9989; Saved!'; ok.style.display='block';
+  setTimeout(function(){ok.style.display='none';},2200);
+}
+
+// ─── ORDER HISTORY UI ─────────────────────────────────────────────────────────
+async function uiOrders(){
+  if(!Auth.user){ openModal('login'); return; }
+  var orders=await dbUserOrders(Auth.user.uid);
+  var body=!orders.length
+    ?'<div class="empty-st"><div class="ei">&#128237;</div><p>No orders yet.<br>Start shopping!</p>'+
+      '<button class="btn-p" onclick="closeModal()" style="margin-top:12px">Browse Menu</button></div>'
+    :orders.map(function(o){
+        var its=o.items.map(function(i){return x(i.name)+' x'+i.quantity;}).join(', ');
+        return '<div class="ocard">'+
+          '<div class="ocard-top">'+
+            '<div>'+
+              '<div class="ocard-id">'+x(o.orderId)+'</div>'+
+              '<div class="ocard-date">'+new Date(o.createdAt).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'})+'</div>'+
+            '</div>'+
+            sBadge(o.status)+
+          '</div>'+
+          '<div class="ocard-items">'+its+'</div>'+
+          '<div class="ocard-bot">'+
+            '<span class="ocard-city">&#128205; '+x((o.deliveryAddress&&o.deliveryAddress.city)||'—')+
+              (o.deliveryAddress&&o.deliveryAddress.pincode?', '+x(o.deliveryAddress.pincode):'')+
+            '</span>'+
+            '<span class="ocard-total">Rs '+o.totalAmount+'</span>'+
+          '</div>'+
+        '</div>';
+      }).join('');
+  paint('m-orders-box',mHead('&#128203; My Orders','account','&#8592; Account')+'<div class="mbody">'+body+'</div>');
+}
+
+// ─── ADMIN DASHBOARD UI ──────────────────────────────────────────────────────
+async function uiAdmin(){
+  // FIX: server-side role check
+  if(!Auth.user||Auth.user.role!=='admin'){ toast('Admin access only &#9940;'); closeModal(); return; }
+  var all=await dbAllOrders(), prods=await dbProducts();
+  var today=new Date(); today.setHours(0,0,0,0);
+  var tO  =all.filter(function(o){return o.createdAt>=today.getTime();});
+  var tRev=tO.filter(function(o){return o.paymentStatus==='paid';}).reduce(function(s,o){return s+o.totalAmount;},0);
+  var pend=all.filter(function(o){return o.status==='pending_verification';}).length;
+  var oos =prods.filter(function(p){return !p.inStock;}).length;
+  var aRev=all.filter(function(o){return o.paymentStatus==='paid';}).reduce(function(s,o){return s+o.totalAmount;},0);
+  var rows=all.slice(0,20).map(function(o){
+    var nexts=STATUS.next[o.status]||[];
+    var btns=nexts.map(function(s){
+      var c=STATUS.color[s];
+      return '<button class="action-btn" style="background:'+c+'18;color:'+c+';border-color:'+c+'44"'+
+             ' onclick="adminSetStatus(\''+x(o.orderId)+'\',\''+s+'\')">'+x(sLabel(s))+'</button>';
+    }).join('');
+    return '<tr>'+
+      '<td><strong>'+x(o.orderId)+'</strong><br><small style="color:var(--muted)">'+
+        new Date(o.createdAt).toLocaleDateString('en-IN')+'</small></td>'+
+      '<td>'+x(o.customerName)+'<br><small style="color:var(--muted)">'+x(o.contactPhone||'')+'</small></td>'+
+      '<td style="font-size:12px;max-width:140px">'+
+        o.items.map(function(i){return x(i.name)+' x'+i.quantity;}).join('<br>')+
+      '</td>'+
+      '<td><strong>Rs '+o.totalAmount+'</strong></td>'+
+      '<td>'+sBadge(o.status)+'</td>'+
+      '<td>'+btns+'</td>'+
+    '</tr>';
+  }).join('');
+  paint('m-admin-box',
+    '<div class="mhdr"><h2>&#128295; Admin Dashboard</h2>'+
+      '<div style="display:flex;gap:8px;align-items:center">'+
+        '<button class="btn-o btn-sm" onclick="openModal(\'products\')">&#128230; Products</button>'+
+        '<button class="mclose" onclick="closeModal()">&#10005;</button>'+
+      '</div>'+
+    '</div>'+
+    '<div class="mbody">'+
+    '<div class="stats-grid">'+
+      '<div class="stat-box"><div class="stat-v">'+tO.length+'</div><div class="stat-l">Today Orders</div></div>'+
+      '<div class="stat-box"><div class="stat-v">Rs '+tRev+'</div><div class="stat-l">Today Revenue</div></div>'+
+      '<div class="stat-box warn"><div class="stat-v">'+pend+'</div><div class="stat-l">Pending Payment</div></div>'+
+      '<div class="stat-box danger"><div class="stat-v">'+oos+'</div><div class="stat-l">Out of Stock</div></div>'+
+      '<div class="stat-box"><div class="stat-v">'+all.length+'</div><div class="stat-l">All Orders</div></div>'+
+      '<div class="stat-box"><div class="stat-v">Rs '+aRev+'</div><div class="stat-l">All Revenue</div></div>'+
+    '</div>'+
+    (all.length
+      ?'<h3 class="slabel" style="margin-top:20px">Recent Orders</h3>'+
+        '<div class="tbl-wrap"><table class="atbl">'+
+        '<thead><tr><th>ID</th><th>Customer</th><th>Items</th><th>Total</th><th>Status</th><th>Actions</th></tr></thead>'+
+        '<tbody>'+rows+'</tbody></table></div>'
+      :'<div class="empty-st"><div class="ei">&#128237;</div><p>No orders yet.</p></div>')+
+    '</div>'
+  );
+}
+async function adminSetStatus(oid,status){
+  // FIX: auth guard on every admin operation
+  if(!Auth.user||Auth.user.role!=='admin'){ toast('Admin access only &#9940;'); return; }
+  await dbUpdateStatus(oid,status);
+  toast('Order updated &#8594; '+sLabel(status));
+  uiAdmin();
+}
+
+// ─── PRODUCT MANAGEMENT UI ───────────────────────────────────────────────────
+async function uiProducts(){
+  if(!Auth.user||Auth.user.role!=='admin'){ closeModal(); return; }
+  var prods=await dbProducts();
+  var rows=prods.map(function(p){
+    return '<tr>'+
+      '<td><img src="'+x(p.img||'')+'" style="width:44px;height:44px;object-fit:cover;border-radius:8px;display:block" onerror="this.style.opacity=0.15"/></td>'+
+      '<td><strong>'+x(p.name)+'</strong><br><small style="color:var(--muted);text-transform:capitalize">'+x(p.cat)+'</small></td>'+
+      '<td>Rs '+p.price+'</td>'+
+      '<td>'+
+        '<label class="tog">'+
+          '<input type="checkbox" '+(p.inStock?'checked':'')+
+            ' onchange="adminStock(\''+x(p.id)+'\',this.checked)"/>'+
+          '<span class="tog-sl"></span>'+
+          '<small style="color:'+(p.inStock?'#16a34a':'#dc2626')+'">'+
+            (p.inStock?'In Stock':'Out')+'</small>'+
+        '</label>'+
+      '</td>'+
+      '<td>'+
+        '<button class="btn-o btn-sm" onclick="openModal(\'pform\',\''+x(p.id)+'\')">Edit</button> '+
+        '<button class="btn-del btn-sm" onclick="adminDel(\''+x(p.id)+'\')">Del</button>'+
+      '</td>'+
+    '</tr>';
+  }).join('');
+  paint('m-products-box',
+    '<div class="mhdr">'+
+      '<button class="mback" onclick="openModal(\'admin\')">&#8592; Admin</button>'+
+      '<h2>&#128230; Products</h2>'+
+      '<button class="btn-p btn-sm" onclick="openModal(\'pform\',null)">+ Add</button>'+
+      '<button class="mclose" onclick="closeModal()">&#10005;</button>'+
+    '</div>'+
+    '<div class="mbody"><div class="tbl-wrap"><table class="atbl">'+
+    '<thead><tr><th>Image</th><th>Product</th><th>Price</th><th>Stock</th><th>Actions</th></tr></thead>'+
+    '<tbody>'+rows+'</tbody></table></div></div>'
+  );
+}
+async function adminStock(pid,v){
+  // FIX: was 'async async function' — fixed + auth guard added
+  if(!Auth.user||Auth.user.role!=='admin'){ toast('Admin access only &#9940;'); return; }
+  await dbToggleStock(pid,v);
+  // FIX: update allProducts in memory to avoid full DB re-fetch
+  var p=allProducts.find(function(q){return String(q.id)===String(pid);});
+  if(p) p.inStock=v;
+  toast(v?'&#9989; Marked in stock':'&#10060; Marked out of stock');
+  renderGrid('current');
+}
+async function adminDel(pid){
+  if(!Auth.user||Auth.user.role!=='admin'){ toast('Admin access only &#9940;'); return; }
+  if(!confirm('Delete this product permanently?')) return;
+  await dbDeleteProduct(pid);
+  allProducts=allProducts.filter(function(p){return String(p.id)!==String(pid);});
+  toast('Product deleted');
+  uiProducts(); renderGrid('current');
+}
+
+// ─── PRODUCT FORM UI ─────────────────────────────────────────────────────────
+async function uiPform(pid){
+  if(!Auth.user||Auth.user.role!=='admin'){ closeModal(); return; }
+  var prods=await dbProducts();
+  var p=pid ? prods.find(function(q){return String(q.id)===String(pid);}) : null;
+  var cats=['bread','cake','pastry','cookie','seasonal','gift'];
+  var catOpts=cats.map(function(c){
+    return '<option value="'+c+'"'+(p&&p.cat===c?' selected':'')+'>'+
+      (c.charAt(0).toUpperCase()+c.slice(1))+'</option>';
+  }).join('');
+  paint('m-pform-box',
+    mHead(p?'Edit Product':'New Product','products','&#8592; Products')+
+    '<div class="mbody">'+
+    '<div id="pferr" class="ferr"></div>'+
+    '<div class="frow">'+
+      '<div class="fg"><label>Name *</label>'+
+        '<input id="pfn" type="text" value="'+x(p?p.name:'')+'" placeholder="Classic Sourdough"/>'+
+      '</div>'+
+      '<div class="fg"><label>Category *</label>'+
+        '<select id="pfc">'+catOpts+'</select>'+
+      '</div>'+
+    '</div>'+
+    '<div class="fg"><label>Description *</label>'+
+      '<textarea id="pfd" rows="3" placeholder="Describe the product...">'+x(p?p.desc:'')+'</textarea>'+
+    '</div>'+
+    '<div class="frow">'+
+      '<div class="fg"><label>Price Rs *</label>'+
+        '<input id="pfp" type="number" value="'+(p?p.price:'')+'" min="1" placeholder="250"/>'+
+      '</div>'+
+      '<div class="fg"><label>Tag</label>'+
+        '<input id="pft" type="text" value="'+x(p?p.tag:'')+'" placeholder="Bread"/>'+
+      '</div>'+
+      '<div class="fg"><label>Sort Order</label>'+
+        '<input id="pfs" type="number" value="'+(p&&p.sortOrder?p.sortOrder:'')+'" placeholder="99"/>'+
+      '</div>'+
+    '</div>'+
+    '<div class="fg"><label>Image URL</label>'+
+      '<input id="pfimg" type="text" value="'+x(p?p.img:'')+'" placeholder="https://... (leave blank to use fallback)"/>'+
+    '</div>'+
+    '<label class="tog" style="margin-bottom:18px">'+
+      '<input id="pfstk" type="checkbox" '+(!p||p.inStock?'checked':'')+
+        ' onchange="document.getElementById(\'pfsl\').textContent=this.checked?\'In Stock\':\'Out of Stock\'"/>'+
+      '<span class="tog-sl"></span>'+
+      '<span id="pfsl" style="font-size:13px;font-weight:700">'+(!p||p.inStock?'In Stock':'Out of Stock')+'</span>'+
+    '</label>'+
+    '<div style="display:flex;gap:12px">'+
+      '<button class="btn-p" onclick="saveProd(\''+x(pid||'')+'\')">'+x(p?'Save Changes':'Add Product')+'</button>'+
+      '<button class="btn-o" onclick="openModal(\'products\')">Cancel</button>'+
+    '</div></div>'
+  );
+}
+async function saveProd(existingId){
+  // FIX: auth guard
+  if(!Auth.user||Auth.user.role!=='admin'){ toast('Admin access only &#9940;'); return; }
+  var name =(document.getElementById('pfn').value||'').trim();
+  var cat  = document.getElementById('pfc').value;
+  var desc =(document.getElementById('pfd').value||'').trim();
+  var price= parseInt(document.getElementById('pfp').value||'0');
+  var tag  =(document.getElementById('pft').value||'').trim()||(cat.charAt(0).toUpperCase()+cat.slice(1));
+  var sort = parseInt(document.getElementById('pfs').value||'99')||99;
+  var imgIn=(document.getElementById('pfimg').value||'').trim();
+  var stk  = document.getElementById('pfstk').checked;
+  var err  = document.getElementById('pferr');
+  function bad(m){err.textContent=m;err.style.display='block';}
+  if(!name)       return bad('Product name is required.');
+  if(!desc)       return bad('Description is required.');
+  if(!price||price<1) return bad('Enter a valid price (minimum Rs 1).');
+  var id=existingId||('p'+Date.now());
+  var oldProd=allProducts.find(function(q){return String(q.id)===String(existingId);});
+  var catFB  =allProducts.find(function(q){return q.cat===cat&&q.img;});
+  var img=imgIn||(oldProd?oldProd.img:'')||(catFB?catFB.img:'');
+  var pdata={id,name,cat,desc,price,tag,tagClass:'',emoji:'🍞',inStock:stk,sortOrder:sort,img,createdAt:Date.now()};
+  await dbSaveProduct(pdata);
+  var ex=allProducts.find(function(q){return String(q.id)===String(id);});
+  if(ex) Object.assign(ex,pdata); else allProducts.push(pdata);
+  toast(existingId?'&#9989; Product updated!':'&#9989; Product added!');
+  renderGrid('current'); openModal('products');
+}
+
+// ─── PRODUCT GRID ────────────────────────────────────────────────────────────
+var allProducts=[], cart=[], wishlist=new Set(), currentCat='all';
+
+async function renderGrid(cat){
+  if(cat==='current') cat=currentCat;
+  currentCat=cat||'all';
+  // Update active filter tile
+  document.querySelectorAll('.cat-tile').forEach(function(t){
+    t.classList.remove('active'); t.setAttribute('aria-pressed','false');
+  });
+  var cats=['all','bread','cake','pastry','cookie','seasonal','gift'];
+  var idx=cats.indexOf(currentCat);
+  var tiles=document.querySelectorAll('.cat-tile');
+  if(idx>=0&&tiles[idx]){ tiles[idx].classList.add('active'); tiles[idx].setAttribute('aria-pressed','true'); }
+
+  var src=await dbProducts(); allProducts=src;
+  var filt=currentCat==='all' ? src : src.filter(function(p){return p.cat===currentCat;});
+  var grid=document.getElementById('product-grid'); if(!grid) return;
+
+  if(!filt.length){
+    grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:60px;color:var(--muted)">'+
+      '<div style="font-size:48px;margin-bottom:12px">&#128269;</div>Nothing here yet. Check back soon!</div>';
+    return;
+  }
+  grid.innerHTML=filt.map(function(p){
+    var wa=wishlist.has(p.id);
+    var addBtn=p.inStock
+      ?'<button class="add-btn" data-add="'+p.id+'" aria-label="Add '+x(p.name)+' to cart">+ Add</button>'
+      :'<span style="font-size:12px;color:var(--muted);font-weight:700">Out of Stock</span>';
+    return '<article class="product-card '+(p.inStock?'':'card-out')+'" data-id="'+p.id+'">'+
+      '<div class="card-img">'+
+        '<button class="wish-btn '+(wa?'active':'')+'" data-wish="'+p.id+'" aria-label="Wishlist '+x(p.name)+'">'+
+          (wa?'&#10084;&#65039;':'&#129293;')+'</button>'+
+        '<img src="'+x(p.img||'')+'" alt="'+x(p.name)+'" loading="lazy"'+
+          ' style="width:100%;height:100%;object-fit:cover;pointer-events:none;transition:transform 400ms ease"'+
+          // FIX: use hex escape \x27 for single quote inside onerror attribute
+          ' onerror="this.style.display=\x27none\x27;this.nextElementSibling.style.display=\x27flex\x27"/>'+
+        '<span style="display:none;font-size:52px;align-items:center;justify-content:center;width:100%;height:100%">'+
+          (p.emoji||'🍞')+'</span>'+
+      '</div>'+
+      '<div class="card-body">'+
+        '<span class="card-tag '+(p.tagClass||'')+'">'+x(p.tag)+'</span>'+
+        '<h3 class="card-name">'+x(p.name)+'</h3>'+
+        '<p class="card-desc">'+x(p.desc)+'</p>'+
+      '</div>'+
+      '<div class="card-footer">'+
+        '<div class="card-price">Rs '+p.price+' <span>/ piece</span></div>'+
+        addBtn+
+      '</div>'+
+    '</article>';
+  }).join('');
+  // Event delegation — no inline onclick with escaped IDs
+  grid.onclick=function(e){
+    var ab=e.target.closest('[data-add]'), wb=e.target.closest('[data-wish]');
+    if(ab) addToCart(ab.dataset.add);
+    else if(wb){ e.stopPropagation(); toggleWish(wb.dataset.wish); }
+  };
+}
+
+function toggleWish(id){
+  if(wishlist.has(id)){ wishlist.delete(id); toast('Removed from wishlist'); }
+  else{ wishlist.add(id); toast('Added to wishlist &#10084;&#65039;'); }
+  renderGrid('current');
+}
+function addToCart(id){
+  var p=allProducts.find(function(q){return String(q.id)===String(id);});
+  if(!p||!p.inStock) return;
+  var ex=cart.find(function(q){return String(q.id)===String(id);});
+  if(ex) ex.qty++; else cart.push(Object.assign({},p,{qty:1}));
+  updateCartUI(); toast((p.emoji||'🍞')+' '+x(p.name)+' added!');
+}
+function removeFromCart(id){
+  cart=cart.filter(function(q){return String(q.id)!==String(id);});
+  updateCartUI();
+}
+function changeQty(id,delta){
+  var item=cart.find(function(q){return String(q.id)===String(id);});
+  if(!item) return;
+  item.qty+=delta;
+  if(item.qty<=0) removeFromCart(id); else updateCartUI();
+}
+
+// ─── CART UI ─────────────────────────────────────────────────────────────────
+function updateCartUI(){
+  LS.set('cart',cart);
+  var total=cart.reduce(function(s,q){return s+q.qty;},0);
+  var badge=document.getElementById('cart-badge');
+  if(badge){ badge.textContent=total; badge.classList.toggle('visible',total>0); }
+  var el=document.getElementById('cart-items'), ft=document.getElementById('cart-footer');
+  if(!el||!ft) return;
+  if(!cart.length){
+    el.innerHTML='<div class="cart-empty">'+
+      '<div class="empty-icon">&#129361;</div>'+
+      '<p>Your cart is empty.<br/>Add something delicious!</p>'+
+    '</div>';
+    ft.style.display='none'; return;
+  }
+  ft.style.display='block';
+  // Event delegation — data-qty / data-rm, no inline onclick with IDs
+  el.innerHTML=cart.map(function(item){
+    return '<div class="cart-item" data-cid="'+item.id+'">'+
+      '<div style="width:56px;height:56px;border-radius:8px;overflow:hidden;flex-shrink:0">'+
+        '<img src="'+x(item.img||'')+'" alt="'+x(item.name)+'"'+
+          ' style="width:100%;height:100%;object-fit:cover"'+
+          ' onerror="this.style.display=\x27none\x27"/>'+
+      '</div>'+
+      '<div class="cart-item-info">'+
+        '<div class="cart-item-name">'+x(item.name)+'</div>'+
+        '<div class="cart-item-price">Rs '+item.price+' each</div>'+
+        '<div class="cart-item-qty">'+
+          '<button class="qty-btn" data-qty="'+item.id+'" data-d="-1" aria-label="Decrease quantity">&#8722;</button>'+
+          '<span class="qty-val">'+item.qty+'</span>'+
+          '<button class="qty-btn" data-qty="'+item.id+'" data-d="1" aria-label="Increase quantity">+</button>'+
+        '</div>'+
+      '</div>'+
+      '<button class="cart-item-remove" data-rm="'+item.id+'" aria-label="Remove '+x(item.name)+' from cart">&#128465;</button>'+
+    '</div>';
+  }).join('');
+  el.onclick=function(e){
+    var qb=e.target.closest('[data-qty]'), rb=e.target.closest('[data-rm]');
+    if(qb) changeQty(qb.dataset.qty, parseInt(qb.dataset.d));
+    else if(rb) removeFromCart(rb.dataset.rm);
+  };
+  document.getElementById('cart-total-price').textContent='Rs '+
+    cart.reduce(function(s,q){return s+q.price*q.qty;},0);
+}
+function openCart(){
+  document.getElementById('cart-overlay').classList.add('open');
+  document.getElementById('cart-drawer').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function closeCart(){
+  document.getElementById('cart-overlay').classList.remove('open');
+  document.getElementById('cart-drawer').classList.remove('open');
+  document.body.style.overflow='';
+}
+
+// ─── TOAST ───────────────────────────────────────────────────────────────────
+var _tt;
+function toast(msg){
+  var t=document.getElementById('toast');
+  document.getElementById('toast-msg').textContent=msg;
+  t.classList.add('show'); clearTimeout(_tt);
+  _tt=setTimeout(function(){t.classList.remove('show');},3000);
+}
+
+// ─── INFO PAGES (FAQ, Returns, Privacy, Terms, Blog, Careers, Sitemap, Custom) ──
+function uiInfoPage(page){
+  var content={
+    faq:{
+      title:'&#10067; Frequently Asked Questions',
+      html:
+        '<div class="acc-item"><div class="acc-q" onclick="this.parentElement.classList.toggle(\'open\')">How fresh are your products? <span>&#43;</span></div>'+
+        '<div class="acc-a">Everything is baked fresh daily — out of the oven before 7 AM. We never stock items from the previous day.</div></div>'+
+        '<div class="acc-item"><div class="acc-q" onclick="this.parentElement.classList.toggle(\'open\')">Do you deliver? <span>&#43;</span></div>'+
+        '<div class="acc-a">Yes! We deliver within the city. Delivery is Rs '+CFG.DELIVERY_FEE+'. Free delivery on orders above Rs '+CFG.FREE_DELIVERY_ABOVE+'.</div></div>'+
+        '<div class="acc-item"><div class="acc-q" onclick="this.parentElement.classList.toggle(\'open\')">How do I place a custom order? <span>&#43;</span></div>'+
+        '<div class="acc-a">Use the Custom Orders form — we\'ll call you back within 24 hours to discuss your requirements and pricing.</div></div>'+
+        '<div class="acc-item"><div class="acc-q" onclick="this.parentElement.classList.toggle(\'open\')">Can I change or cancel my order? <span>&#43;</span></div>'+
+        '<div class="acc-a">Orders can be cancelled within 30 minutes of placement. Contact us via WhatsApp immediately for changes.</div></div>'+
+        '<div class="acc-item"><div class="acc-q" onclick="this.parentElement.classList.toggle(\'open\')">What payment methods do you accept? <span>&#43;</span></div>'+
+        '<div class="acc-a">We accept all UPI apps (GPay, PhonePe, Paytm), credit/debit cards, and net banking via Razorpay. All payments are secure.</div></div>'+
+        '<div class="acc-item"><div class="acc-q" onclick="this.parentElement.classList.toggle(\'open\')">Are your products vegetarian? <span>&#43;</span></div>'+
+        '<div class="acc-a">All our products are 100% vegetarian. We use no meat, eggs (except in specific items labelled), or non-vegetarian ingredients.</div></div>'
+    },
+    returns:{
+      title:'&#128257; Returns & Refunds',
+      html:
+        '<div class="info-section"><h3>Our Promise</h3>'+
+        '<p>We take immense pride in the quality of everything that leaves our kitchen. If you\'re not completely satisfied, we want to make it right.</p></div>'+
+        '<div class="info-section"><h3>When We Issue a Full Refund</h3>'+
+        '<ul><li>Item arrived damaged or broken in transit</li>'+
+        '<li>Wrong item delivered</li>'+
+        '<li>Item was stale or had quality issues</li>'+
+        '<li>Order never arrived</li></ul></div>'+
+        '<div class="info-section"><h3>How to Raise a Concern</h3>'+
+        '<p>WhatsApp us at <strong>+91 99999 99999</strong> within <strong>4 hours of delivery</strong> with a photo of the issue. We\'ll resolve it within 24 hours — replacement or full refund, your choice.</p></div>'+
+        '<div class="info-section"><h3>What We Cannot Refund</h3>'+
+        '<ul><li>Change of mind after dispatch</li>'+
+        '<li>Incorrect address provided by the customer</li>'+
+        '<li>Custom orders (once production has started)</li></ul></div>'
+    },
+    privacy:{
+      title:'&#128274; Privacy Policy',
+      html:
+        '<div class="info-section"><h3>What We Collect</h3>'+
+        '<p>We collect your name, email, phone number, and delivery address — only what\'s needed to process and deliver your order. We never collect payment card details directly; all payments are processed by Razorpay.</p></div>'+
+        '<div class="info-section"><h3>How We Use It</h3>'+
+        '<ul><li>Process and deliver your orders</li>'+
+        '<li>Send order status updates (WhatsApp/email)</li>'+
+        '<li>Improve our products and service</li>'+
+        '<li>Contact you about your account if needed</li></ul></div>'+
+        '<div class="info-section"><h3>How We Store It</h3>'+
+        '<p>Data is stored in Supabase (PostgreSQL) hosted on AWS Mumbai region. Passwords are hashed with SHA-256 and are never stored in plain text. Sessions expire after 7 days.</p></div>'+
+        '<div class="info-section"><h3>We Never Sell Your Data</h3>'+
+        '<p>We do not sell, rent, or share your personal data with any third party for marketing purposes. Full stop.</p></div>'+
+        '<div class="info-section"><h3>Your Rights</h3>'+
+        '<p>You can request deletion of your account and data at any time by emailing us. We will process all deletion requests within 7 days.</p></div>'
+    },
+    terms:{
+      title:'&#128203; Terms of Service',
+      html:
+        '<div class="info-section"><h3>1. Acceptance</h3>'+
+        '<p>By placing an order on Upper Crust, you agree to these terms. These apply to all transactions made through this website.</p></div>'+
+        '<div class="info-section"><h3>2. Orders</h3>'+
+        '<p>Orders are accepted subject to product availability. We reserve the right to cancel any order and issue a full refund. Prices are in Indian Rupees (Rs) and inclusive of all taxes.</p></div>'+
+        '<div class="info-section"><h3>3. Delivery</h3>'+
+        '<p>We deliver within our serviceable areas. Delivery timelines are estimates. We are not responsible for delays caused by incorrect addresses or unavailability of the recipient.</p></div>'+
+        '<div class="info-section"><h3>4. Payments</h3>'+
+        '<p>All online payments are processed by Razorpay. We do not store any card or bank details. For UPI/GPay payments, admin confirmation is required within 2 business hours.</p></div>'+
+        '<div class="info-section"><h3>5. Food Safety</h3>'+
+        '<p>Our products are made in a kitchen that handles wheat, dairy, nuts, and eggs. Please inform us of allergies before ordering — we cannot guarantee a fully allergen-free environment.</p></div>'+
+        '<div class="info-section"><h3>6. Governing Law</h3>'+
+        '<p>These terms are governed by the laws of India. Any disputes shall be subject to the jurisdiction of courts in Bengaluru, Karnataka.</p></div>'
+    },
+    blog:{
+      title:'&#128214; From Our Kitchen',
+      html:
+        '<div class="blog-grid">'+
+        ['The Science Behind Our Sourdough|We ferment our wild yeast starter for 48+ hours before it goes into any loaf...|Baking Tips|Jan 2026',
+         'Mango Season is Here!|Every June, we source Alphonso mangoes directly from Ratnagiri farms for our limited-edition Mango Cream Cake...|Seasonal|Mar 2026',
+         'Why We Use Only French Butter|Our croissants require 250g of pure beurre de qualité extra per dozen. We tried alternatives. There are none.|Ingredients|Feb 2026',
+         'The Art of Lamination|27 layers. 3 turns. 4 hours of resting. Making a croissant is an exercise in patience and precision...|Technique|Dec 2025'
+        ].map(function(b){
+          var p=b.split('|');
+          return '<div class="blog-card">'+
+            '<div class="blog-meta">'+x(p[2])+' &bull; '+x(p[3])+'</div>'+
+            '<h3>'+x(p[0])+'</h3>'+
+            '<p>'+x(p[1])+'</p>'+
+            '<a href="#" onclick="return false" style="color:var(--espresso);font-weight:700;font-size:13px">Read more &rarr;</a>'+
+          '</div>';
+        }).join('')+
+        '</div>'
+    },
+    careers:{
+      title:'&#128101; Join Our Team',
+      html:
+        '<p style="color:var(--muted);margin-bottom:20px">We are a small, passionate team. We hire for attitude and train for skill.</p>'+
+        [['Baker / Pastry Chef','Full-time · Bengaluru','You love early mornings, great butter, and getting things right. 2+ years in a professional bakery kitchen.'],
+         ['Delivery Partner','Part-time · Bengaluru','Careful, punctual, and friendly. Own vehicle preferred. Flexible hours 8 AM–2 PM.'],
+         ['Customer Delight','Part-time · Remote','Handle customer queries on WhatsApp and Instagram with warmth and speed. Great written Hindi/English.']
+        ].map(function(j){
+          return '<div class="job-card">'+
+            '<div class="job-title">'+x(j[0])+'</div>'+
+            '<div class="job-type">'+x(j[1])+'</div>'+
+            '<p style="font-size:13px;color:var(--muted);margin:8px 0 12px">'+x(j[2])+'</p>'+
+            '<a href="mailto:careers@uppercrust.in?subject=Application: '+x(j[0])+'" class="btn-o btn-sm" style="text-decoration:none;display:inline-block">Apply &rarr;</a>'+
+          '</div>';
+        }).join('')
+    },
+    sitemap:{
+      title:'&#127758; Sitemap',
+      html:
+        '<div class="sm-col"><h3>Shop</h3>'+
+        '<ul>'+
+        '<li><a href="#" onclick="closeModal();renderGrid(\'all\');return false">All Products</a></li>'+
+        '<li><a href="#" onclick="closeModal();renderGrid(\'bread\');return false">Breads</a></li>'+
+        '<li><a href="#" onclick="closeModal();renderGrid(\'cake\');return false">Cakes</a></li>'+
+        '<li><a href="#" onclick="closeModal();renderGrid(\'pastry\');return false">Pastries</a></li>'+
+        '<li><a href="#" onclick="closeModal();renderGrid(\'cookie\');return false">Cookies</a></li>'+
+        '<li><a href="#" onclick="closeModal();renderGrid(\'gift\');return false">Gift Boxes</a></li>'+
+        '</ul></div>'+
+        '<div class="sm-col"><h3>Account</h3>'+
+        '<ul>'+
+        '<li><a href="#" onclick="openModal(\'login\');return false">Log In</a></li>'+
+        '<li><a href="#" onclick="openModal(\'signup\');return false">Sign Up</a></li>'+
+        '<li><a href="#" onclick="openModal(\'account\');return false">My Account</a></li>'+
+        '<li><a href="#" onclick="openModal(\'orders\');return false">My Orders</a></li>'+
+        '</ul></div>'+
+        '<div class="sm-col"><h3>Help</h3>'+
+        '<ul>'+
+        '<li><a href="#" onclick="openModal(\'faq\');return false">FAQs</a></li>'+
+        '<li><a href="#" onclick="openModal(\'returns\');return false">Returns Policy</a></li>'+
+        '<li><a href="#" onclick="openModal(\'custom\');return false">Custom Orders</a></li>'+
+        '<li><a href="#" onclick="document.getElementById(\'newsletter\').scrollIntoView({behavior:\'smooth\'});closeModal();return false">Contact Us</a></li>'+
+        '</ul></div>'+
+        '<div class="sm-col"><h3>Company</h3>'+
+        '<ul>'+
+        '<li><a href="#story" onclick="closeModal()">Our Story</a></li>'+
+        '<li><a href="#" onclick="openModal(\'blog\');return false">Blog</a></li>'+
+        '<li><a href="#" onclick="openModal(\'careers\');return false">Careers</a></li>'+
+        '<li><a href="#" onclick="openModal(\'privacy\');return false">Privacy Policy</a></li>'+
+        '<li><a href="#" onclick="openModal(\'terms\');return false">Terms of Service</a></li>'+
+        '</ul></div>'
+    },
+    custom:{
+      title:'&#127874; Custom Orders',
+      html:
+        '<p style="color:var(--muted);margin-bottom:20px;font-size:14px">Custom cakes, corporate gifting, or bulk orders — we do it all. Fill in your details and we\'ll call you back within 24 hours.</p>'+
+        '<div id="cferr" class="ferr"></div><div id="cfok" class="fok"></div>'+
+        '<div class="frow">'+
+          '<div class="fg"><label>Your Name *</label><input id="cfn" type="text" placeholder="Priya Sharma" autocomplete="name"/></div>'+
+          '<div class="fg"><label>Phone *</label><input id="cfph" type="tel" placeholder="9876543210" maxlength="10" autocomplete="tel"/></div>'+
+        '</div>'+
+        '<div class="fg"><label>What do you need? *</label>'+
+          '<textarea id="cfd" rows="4" placeholder="e.g. Custom birthday cake for 30 people, chocolate flavour, fondant topping, delivery by 15th March..."></textarea>'+
+        '</div>'+
+        '<div class="frow">'+
+          '<div class="fg"><label>Budget (approx. Rs)</label><input id="cfb" type="number" placeholder="2000" min="500"/></div>'+
+          '<div class="fg"><label>Required By</label><input id="cfd2" type="date"/></div>'+
+        '</div>'+
+        '<button class="btn-p" onclick="submitCustomOrder()">Send Request &#8594;</button>'
+    }
+  };
+  var pg=content[page];
+  if(!pg){ paint('m-'+page+'-box',mHead('Coming Soon')+'<div class="mbody"><p>This page is coming soon.</p></div>'); return; }
+  paint('m-'+page+'-box',
+    mHead(pg.title)+
+    '<div class="mbody info-page">'+pg.html+'</div>'
+  );
+}
+function submitCustomOrder(){
+  var name  =(document.getElementById('cfn').value||'').trim();
+  var ph    =(document.getElementById('cfph').value||'').trim();
+  var desc  =(document.getElementById('cfd').value||'').trim();
+  var budget=(document.getElementById('cfb').value||'').trim();
+  var date  =(document.getElementById('cfd2').value||'').trim();
+  var err=document.getElementById('cferr'), ok=document.getElementById('cfok');
+  if(!name||!ph||!desc){err.textContent='Please fill in name, phone, and requirement.';err.style.display='block';return;}
+  if(ph.replace(/\D/g,'').length<10){err.textContent='Enter a valid 10-digit phone number.';err.style.display='block';return;}
+  err.style.display='none';
+  // Build pre-filled WhatsApp message and open in new tab
+  var msg='Hi Upper Crust! I have a custom order request.\n\n'
+    +'Name: '+name+'\nPhone: '+ph
+    +'\nRequirement: '+desc
+    +(budget?'\nBudget: Rs '+budget:'')
+    +(date?'\nNeeded by: '+date:'');
+  window.open('https://wa.me/919999999999?text='+encodeURIComponent(msg),'_blank','noopener');
+  ok.textContent='&#9989; Opening WhatsApp — just hit Send to confirm your request!';
+  ok.style.display='block';
+  ['cfn','cfph','cfd','cfb','cfd2'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});
+}
+
+// ─── MISC EVENT HANDLERS ─────────────────────────────────────────────────────
+function handleNewsletter(e){
+  e.preventDefault();
+  toast('&#127881; Subscribed! Welcome to the Upper Crust family.');
+  e.target.reset();
+}
+
+window.addEventListener('scroll',function(){
+  document.getElementById('nav').classList.toggle('scrolled',window.scrollY>60);
+});
+document.getElementById('cart-trigger').addEventListener('click',openCart);
+document.getElementById('hamburger').addEventListener('click',function(){
+  document.getElementById('mobile-nav').classList.add('open');
+  document.body.style.overflow='hidden';
+});
+document.getElementById('close-mobile').addEventListener('click',function(){
+  document.getElementById('mobile-nav').classList.remove('open');
+  document.body.style.overflow='';
+});
+
+var revObs=new IntersectionObserver(function(entries){
+  entries.forEach(function(e){
+    if(e.isIntersecting){ e.target.classList.add('visible'); revObs.unobserve(e.target); }
+  });
+},{threshold:0.12});
+document.querySelectorAll('.reveal').forEach(function(el){revObs.observe(el);});
+
+// ─── BOOT ────────────────────────────────────────────────────────────────────
+(async function boot(){
+  // Init Supabase first (needed for dbAnyAdmin in first-run banner check)
+  if(CFG.USE_SUPABASE){
+    try{
+      SB=window.supabase.createClient(CFG.SUPABASE_URL,CFG.SUPABASE_ANON_KEY);
+      console.info('[UC] Supabase connected ✓');
+    }catch(e){
+      console.warn('[UC] Supabase init failed, using localStorage:',e.message);
+      CFG.USE_SUPABASE=false; SB=null;
+    }
+  }
+
+  // FIX: check Supabase too for first-run banner (not just localStorage)
+  var hasAnyAdmin=await dbAnyAdmin();
+  if(!hasAnyAdmin){
+    var b=document.createElement('div');
+    b.id='frb';
+    b.style.cssText='position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:9999;'+
+      'background:var(--espresso);color:#fff;padding:16px 20px;border-radius:16px;'+
+      'max-width:680px;width:calc(100% - 32px);box-shadow:0 8px 40px rgba(0,0,0,.3)';
+    b.innerHTML=
+      '<div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">'+
+        '<span style="font-size:20px">&#x1F44B;</span>'+
+        '<div><strong>Welcome to Upper Crust!</strong><br>'+
+          '<span style="font-size:13px;opacity:.9">First account created becomes <strong>Admin</strong>.</span></div>'+
+        '<button id="frb-s" style="background:#fff;color:var(--espresso);border:none;padding:8px 16px;'+
+          'border-radius:20px;font-weight:700;cursor:pointer;font-size:13px;white-space:nowrap">'+
+          'Create Admin Account &#x2192;</button>'+
+        '<button id="frb-d" style="background:transparent;border:1px solid rgba(255,255,255,.4);'+
+          'color:#fff;padding:7px 12px;border-radius:20px;cursor:pointer;font-size:12px">Dismiss</button>'+
+      '</div>';
+    document.body.appendChild(b);
+    document.getElementById('frb-s').onclick=function(){ b.remove(); openModal('signup'); };
+    document.getElementById('frb-d').onclick=function(){ b.remove(); };
+  }
+
+  await Auth.init();
+  await renderGrid('all');
+  updateCartUI();
+})();
+</script>
+</body>
+</html>
